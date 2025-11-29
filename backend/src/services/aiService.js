@@ -124,6 +124,14 @@ function getAffirmation(emotion) {
   return emotionAffirmations[randomIndex];
 }
 
+// Common completion indicators (defined outside function for performance)
+const completionPhrases = [
+  'did my', 'completed my', 'finished my', 'went to', 'went for',
+  'practiced', 'worked on', 'did some', 'went', 'ate', 'drank',
+  'read', 'wrote', 'exercised', 'ran', 'walked', 'meditated',
+  'studied', 'learned', 'cooked', 'cleaned', 'organized'
+];
+
 /**
  * Detect which habits are mentioned as completed in the journal entry
  * @param {string} content - The journal entry content
@@ -133,14 +141,6 @@ function getAffirmation(emotion) {
 function detectCompletedHabits(content, userHabits) {
   const lowerContent = content.toLowerCase();
   const completedHabits = [];
-  
-  // Common completion indicators
-  const completionPhrases = [
-    'did my', 'completed my', 'finished my', 'went to', 'went for',
-    'practiced', 'worked on', 'did some', 'went', 'ate', 'drank',
-    'read', 'wrote', 'exercised', 'ran', 'walked', 'meditated',
-    'studied', 'learned', 'cooked', 'cleaned', 'organized'
-  ];
   
   for (const habit of userHabits) {
     const habitNameLower = habit.name.toLowerCase();
