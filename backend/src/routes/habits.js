@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Habit = require('../models/Habit');
-const User = require('../models/User');
+const { requireString, getUserOr404, getHabitOr404 } = require('./helpers');
 
 // Get all habits for a user
 router.get('/user/:userId', (req, res) => {
   try {
-    const user = User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+    const user = getUserOr404(req.params.userId, res);
+    if (!user) return;
+
     const habits = Habit.findByUserId(req.params.userId);
     res.json(habits);
   } catch (error) {
@@ -23,21 +21,18 @@ router.get('/user/:userId', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const { userId, name, description } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
-    
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return res.status(400).json({ error: 'Habit name is required' });
-    }
-    
-    const user = User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    const habit = Habit.create(userId, name.trim(), description?.trim() || null);
+
+    const habitName = requireString(name, 'Habit name is required', res);
+    if (!habitName) return;
+
+    const user = getUserOr404(userId, res);
+    if (!user) return;
+
+    const habit = Habit.create(userId, habitName, description?.trim() || null);
     res.status(201).json(habit);
   } catch (error) {
     console.error('Error creating habit:', error);
@@ -48,12 +43,9 @@ router.post('/', (req, res) => {
 // Get a specific habit
 router.get('/:id', (req, res) => {
   try {
-    const habit = Habit.findById(req.params.id);
-    
-    if (!habit) {
-      return res.status(404).json({ error: 'Habit not found' });
-    }
-    
+    const habit = getHabitOr404(req.params.id, res);
+    if (!habit) return;
+
     res.json(habit);
   } catch (error) {
     console.error('Error fetching habit:', error);
@@ -65,17 +57,14 @@ router.get('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const { name, description } = req.body;
-    
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return res.status(400).json({ error: 'Habit name is required' });
-    }
-    
-    const existingHabit = Habit.findById(req.params.id);
-    if (!existingHabit) {
-      return res.status(404).json({ error: 'Habit not found' });
-    }
-    
-    const habit = Habit.update(req.params.id, name.trim(), description?.trim() || null);
+
+    const habitName = requireString(name, 'Habit name is required', res);
+    if (!habitName) return;
+
+    const existingHabit = getHabitOr404(req.params.id, res);
+    if (!existingHabit) return;
+
+    const habit = Habit.update(req.params.id, habitName, description?.trim() || null);
     res.json(habit);
   } catch (error) {
     console.error('Error updating habit:', error);
@@ -86,12 +75,9 @@ router.put('/:id', (req, res) => {
 // Delete a habit
 router.delete('/:id', (req, res) => {
   try {
-    const habit = Habit.findById(req.params.id);
-    
-    if (!habit) {
-      return res.status(404).json({ error: 'Habit not found' });
-    }
-    
+    const habit = getHabitOr404(req.params.id, res);
+    if (!habit) return;
+
     Habit.delete(req.params.id);
     res.status(204).send();
   } catch (error) {
@@ -104,15 +90,13 @@ router.delete('/:id', (req, res) => {
 router.get('/user/:userId/completions', (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     if (!startDate || !endDate) {
       return res.status(400).json({ error: 'Start date and end date are required' });
     }
     
-    const user = User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = getUserOr404(req.params.userId, res);
+    if (!user) return;
     
     const completions = Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
     res.json(completions);

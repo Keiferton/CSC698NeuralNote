@@ -1,17 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const { requireString } = require('./helpers');
 
 // Get or create a user
 router.post('/', (req, res) => {
   try {
-    const { username } = req.body;
-    
-    if (!username || typeof username !== 'string' || username.trim().length === 0) {
-      return res.status(400).json({ error: 'Username is required' });
-    }
-    
-    const user = User.findOrCreate(username.trim());
+    const username = requireString(req.body.username, 'Username is required', res);
+    if (!username) return;
+
+    const user = User.findOrCreate(username);
     res.status(201).json(user);
   } catch (error) {
     console.error('Error creating user:', error);

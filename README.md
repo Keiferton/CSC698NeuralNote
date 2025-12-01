@@ -1,125 +1,73 @@
-# 🧠 NeuralNote
+# NeuralNote
 
-AI-assisted journaling and habit tracking app that helps users reflect more effectively through intelligent analysis and gentle affirmations.
+AI-assisted journaling and habit tracking. The backend is a small Express + SQLite API; the frontend is a React SPA that calls it via REST.
 
-## Features
+## What’s here (MVP)
+- Express API with rule-based “AI” for summaries/emotion/affirmations and habit detection.
+- SQLite storage via `better-sqlite3`; in-memory DB for tests.
+- React client with tabs for Journal, Habits, and Dashboard.
+- Jest + Supertest coverage for the backend routes and AI helpers.
 
-- 📝 **Daily Journaling** - Write daily journal entries with a clean, intuitive interface
-- 🤖 **AI Reflections** - Get automatic summaries, emotion detection, and personalized affirmations
-- ✅ **Smart Habit Tracking** - Automatically detects completed habits mentioned in your journal entries
-- 📊 **Progress Dashboard** - Visualize your journaling streak, emotion patterns, and habit completions
-
-## Tech Stack
-
-- **Frontend**: React.js
-- **Backend**: Node.js with Express
-- **Database**: SQLite (via better-sqlite3)
-- **AI Service**: Rule-based emotion detection and habit matching (extensible to real AI APIs)
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ installed
-- npm or yarn package manager
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Keiferton/CSC698NeuralNote.git
-cd CSC698NeuralNote
+## Quick start
+1) Backend  
 ```
-
-2. Install backend dependencies:
-```bash
 cd backend
 npm install
+npm start   # http://localhost:3001
 ```
 
-3. Install frontend dependencies:
-```bash
-cd ../frontend
+2) Frontend (new terminal)  
+```
+cd frontend
 npm install
+npm start   # http://localhost:3000
 ```
 
-### Running the Application
+Optional env: set `REACT_APP_API_URL` to point the frontend at a non-default API base (defaults to `http://localhost:3001/api`).
 
-1. Start the backend server:
-```bash
-cd backend
-npm start
-```
-The API server will run on http://localhost:3001
-
-2. In a new terminal, start the frontend:
-```bash
-cd frontend
-npm start
-```
-The app will open at http://localhost:3000
-
-### Running Tests
-
-Backend tests:
-```bash
-cd backend
-npm test
-```
-
-Frontend tests:
-```bash
-cd frontend
-npm test
-```
-
-## API Endpoints
-
-### Users
-- `POST /api/users` - Create or get a user
-- `GET /api/users/:id` - Get user by ID
-
-### Habits
-- `GET /api/habits/user/:userId` - Get all habits for a user
-- `POST /api/habits` - Create a new habit
-- `PUT /api/habits/:id` - Update a habit
-- `DELETE /api/habits/:id` - Delete a habit
-
-### Journal Entries
-- `GET /api/journal/user/:userId` - Get all journal entries for a user
-- `POST /api/journal` - Create a new entry (with AI analysis)
-- `PUT /api/journal/:id` - Update an entry
-- `DELETE /api/journal/:id` - Delete an entry
-- `POST /api/journal/:id/habits/:habitId/toggle` - Toggle habit completion
-
-### Dashboard
-- `GET /api/dashboard/:userId` - Get dashboard data with stats and visualizations
-
-## Project Structure
-
+## Proposed reduced MVP folder layout
 ```
 CSC698NeuralNote/
 ├── backend/
 │   ├── src/
-│   │   ├── models/       # Database models
-│   │   ├── routes/       # API routes
-│   │   ├── services/     # AI and business logic
-│   │   ├── __tests__/    # Backend tests
-│   │   ├── app.js        # Express app
-│   │   └── server.js     # Server entry point
+│   │   ├── app.js
+│   │   ├── routes/       # users, habits, journal, dashboard, helpers
+│   │   ├── models/       # User, Habit, JournalEntry, HabitCompletion, database
+│   │   ├── services/     # aiService
+│   │   └── __tests__/    # jest + supertest suites
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── components/   # React components
-│   │   ├── hooks/        # Custom React hooks
-│   │   ├── services/     # API service
-│   │   ├── App.js        # Main app component
-│   │   └── App.css       # Global styles
+│   │   ├── components/   # Dashboard, HabitManager, JournalEntry, LoginForm
+│   │   ├── hooks/        # useData
+│   │   ├── services/     # api client
+│   │   └── App.js/App.css etc.
 │   └── package.json
-└── README.md
+└── docs/                 # architecture.md, api.md, data-models.md
 ```
 
-## License
+## Data model (SQLite)
+- `users`: `id`, `username`, `created_at`
+- `habits`: `id`, `user_id`, `name`, `description`, `created_at`
+- `journal_entries`: `id`, `user_id`, `content`, `ai_summary`, `ai_emotion`, `ai_affirmation`, `created_at`
+- `habit_completions`: `id`, `habit_id`, `journal_entry_id`, `completed_at` (unique on habit+entry)
 
-ISC
+Details live in `docs/data-models.md`.
 
+## API overview
+Base URL `http://localhost:3001/api`
+- Users: `POST /users`, `GET /users/:id`
+- Habits: `GET /habits/user/:userId`, `POST /habits`, `GET/PUT/DELETE /habits/:id`, completions window at `/habits/user/:userId/completions`
+- Journal: `GET /journal/user/:userId`, `POST /journal`, `GET/PUT/DELETE /journal/:id`, toggle completion `/journal/:id/habits/:habitId/toggle`
+- Dashboard: `GET /dashboard/:userId`
+
+More request/response detail is in `docs/api.md`.
+
+## Testing
+- Backend: `cd backend && npm test` (runs against an in-memory DB).
+- Frontend: `cd frontend && npm test` (CRA defaults; currently minimal).
+
+## Docs
+- `docs/architecture.md` — stack and runtime flow.
+- `docs/api.md` — REST endpoints.
+- `docs/data-models.md` — schema and relationships.

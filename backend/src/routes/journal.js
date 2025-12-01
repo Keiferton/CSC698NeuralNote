@@ -3,17 +3,15 @@ const router = express.Router();
 const JournalEntry = require('../models/JournalEntry');
 const Habit = require('../models/Habit');
 const HabitCompletion = require('../models/HabitCompletion');
-const User = require('../models/User');
 const aiService = require('../services/aiService');
+const { requireString, getUserOr404, getHabitOr404 } = require('./helpers');
 
 // Get all journal entries for a user
 router.get('/user/:userId', (req, res) => {
   try {
-    const user = User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+    const user = getUserOr404(req.params.userId, res);
+    if (!user) return;
+
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
     const entries = JournalEntry.findByUserId(req.params.userId, limit, offset);
@@ -35,30 +33,27 @@ router.get('/user/:userId', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const { userId, content } = req.body;
-    
+
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
-    
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return res.status(400).json({ error: 'Journal entry content is required' });
-    }
-    
-    const user = User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+
+    const entryContent = requireString(content, 'Journal entry content is required', res);
+    if (!entryContent) return;
+
+    const user = getUserOr404(userId, res);
+    if (!user) return;
+
     // Get user's habits for detection
     const userHabits = Habit.findByUserId(userId);
     
     // Generate AI reflection
-    const reflection = aiService.generateReflection(content.trim(), userHabits);
+    const reflection = aiService.generateReflection(entryContent, userHabits);
     
     // Create the journal entry
     const entry = JournalEntry.create(
       userId,
-      content.trim(),
+      entryContent,
       reflection.summary,
       reflection.emotion,
       reflection.affirmation
@@ -109,11 +104,10 @@ router.get('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const { content } = req.body;
-    
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return res.status(400).json({ error: 'Journal entry content is required' });
-    }
-    
+
+    const entryContent = requireString(content, 'Journal entry content is required', res);
+    if (!entryContent) return;
+
     const existingEntry = JournalEntry.findById(req.params.id);
     if (!existingEntry) {
       return res.status(404).json({ error: 'Journal entry not found' });
@@ -123,12 +117,12 @@ router.put('/:id', (req, res) => {
     const userHabits = Habit.findByUserId(existingEntry.user_id);
     
     // Regenerate AI reflection with updated content
-    const reflection = aiService.generateReflection(content.trim(), userHabits);
+    const reflection = aiService.generateReflection(entryContent, userHabits);
     
     // Update the entry
     const entry = JournalEntry.update(
       req.params.id,
-      content.trim(),
+      entryContent,
       reflection.summary,
       reflection.emotion,
       reflection.affirmation
@@ -184,11 +178,9 @@ router.post('/:id/habits/:habitId/toggle', (req, res) => {
     if (!entry) {
       return res.status(404).json({ error: 'Journal entry not found' });
     }
-    
-    const habit = Habit.findById(req.params.habitId);
-    if (!habit) {
-      return res.status(404).json({ error: 'Habit not found' });
-    }
+
+    const habit = getHabitOr404(req.params.habitId, res);
+    if (!habit) return;
     
     // Check if completion exists
     const existingCompletion = HabitCompletion.findByHabitAndEntry(

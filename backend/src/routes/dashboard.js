@@ -2,15 +2,13 @@ const express = require('express');
 const router = express.Router();
 const JournalEntry = require('../models/JournalEntry');
 const Habit = require('../models/Habit');
-const User = require('../models/User');
+const { getUserOr404 } = require('./helpers');
 
 // Get dashboard data for a user
 router.get('/:userId', (req, res) => {
   try {
-    const user = User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = getUserOr404(req.params.userId, res);
+    if (!user) return;
     
     // Get date range for the dashboard (default: last 30 days)
     const endDate = new Date().toISOString();
