@@ -1,0 +1,249 @@
+.dashboard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard.loading,
+.dashboard.empty {
+  text-align: center;
+  color: #888;
+  padding: 40px;
+}
+
+.dashboard h2 {
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+  border-radius: 10px;
+}
+
+.stat-icon {
+  font-size: 2rem;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.emotion-chart,
+.weekly-activity,
+.habit-progress,
+.recent-entries {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.emotion-chart h3,
+.weekly-activity h3,
+.habit-progress h3,
+.recent-entries h3 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.emotion-chart.empty,
+.habit-progress.empty {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Emotion Chart */
+.emotion-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.emotion-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emotion-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.emotion-label .emoji {
+  font-size: 1.2rem;
+}
+
+.emotion-label .name {
+  font-size: 0.85rem;
+  color: #555;
+  text-transform: capitalize;
+}
+
+.bar-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  height: 20px;
+  border-radius: 4px;
+  min-width: 10px;
+  transition: width 0.3s ease;
+}
+
+.bar-wrapper .count {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 600;
+}
+
+/* Weekly Activity */
+.activity-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 100px;
+  gap: 8px;
+}
+
+.day-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 80px;
+}
+
+.activity-bar {
+  width: 80%;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 4px;
+  min-height: 10px;
+}
+
+.activity-bar .count {
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 600;
+}
+
+.day-name {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Habit Progress */
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.habit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 6px;
+}
+
+.habit-name {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.habit-count {
+  font-size: 0.85rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Recent Entries */
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entry-preview {
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.entry-date {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.entry-emotion {
+  font-size: 1.1rem;
+}
+
+.entry-snippet {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+}
