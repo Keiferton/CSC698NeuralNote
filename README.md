@@ -25,7 +25,7 @@ npm start   # http://localhost:3000
 
 Optional env: set `REACT_APP_API_URL` to point the frontend at a non-default API base (defaults to `http://localhost:3001/api`).
 
-## Proposed reduced MVP folder layout
+## Proposed MVP folder layout
 ```
 CSC698NeuralNote/
 ├── backend/
