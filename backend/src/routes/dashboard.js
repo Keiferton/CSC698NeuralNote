@@ -23,6 +23,10 @@ router.get('/:userId', (req, res) => {
     // Get habit completions for the date range
     const habitCompletions = Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
     
+    // Get total habits count
+    const allHabits = Habit.findByUserId(req.params.userId);
+    const totalHabits = allHabits.length;
+    
     // Calculate emotion distribution
     const emotionDistribution = {};
     for (const entry of allEntries) {
@@ -96,6 +100,7 @@ router.get('/:userId', (req, res) => {
       user,
       stats: {
         totalEntries: allEntries.length,
+        totalHabits,
         currentStreak,
         habitCompletionRate: habitCompletions.length > 0 
           ? habitCompletions.reduce((sum, h) => sum + h.completion_count, 0) / habitCompletions.length 
