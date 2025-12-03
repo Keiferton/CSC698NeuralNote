@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import './App.css';
 import { useUser, useHabits, useJournal, useDashboard } from './hooks/useData';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginForm from './components/LoginForm';
 import JournalEntry from './components/JournalEntry';
 import HabitManager from './components/HabitManager';
@@ -132,10 +133,18 @@ function App() {
   }
 
   if (!user) {
-    return <LoginForm onLogin={login} />;
+    return (
+      <ErrorBoundary>
+        <LoginForm onLogin={login} />
+      </ErrorBoundary>
+    );
   }
 
-  return <MainApp user={user} onLogout={logout} />;
+  return (
+    <ErrorBoundary>
+      <MainApp user={user} onLogout={logout} />
+    </ErrorBoundary>
+  );
 }
 
 export default App;
