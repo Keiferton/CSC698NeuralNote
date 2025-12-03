@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "NODE_ENV=test jest --coverage",
-    "test:watch": "NODE_ENV=test jest --watch"
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:integration": "NODE_ENV=test jest --testPathPattern=integration.test.js"
   },
   "keywords": ["journaling", "habit-tracking", "ai"],
   "author": "",
