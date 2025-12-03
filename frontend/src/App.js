@@ -8,6 +8,7 @@ import JournalEntry from './components/JournalEntry';
 import HabitManager from './components/HabitManager';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
+import About from './components/About';
 
 function MainApp({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('journal');
@@ -93,6 +94,12 @@ function MainApp({ user, onLogout }) {
           >
             ⚙️ Settings
           </button>
+          <button 
+            className={activeTab === 'about' ? 'active' : ''} 
+            onClick={() => setActiveTab('about')}
+          >
+            ℹ️ About
+          </button>
         </nav>
       </header>
 
@@ -127,6 +134,10 @@ function MainApp({ user, onLogout }) {
         
         {activeTab === 'settings' && (
           <Settings />
+        )}
+        
+        {activeTab === 'about' && (
+          <About />
         )}
       </main>
     </div>
