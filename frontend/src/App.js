@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './App.css';
 import { useUser, useHabits, useJournal, useDashboard } from './hooks/useData';
-import { useTheme } from './context/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginForm from './components/LoginForm';
 import JournalEntry from './components/JournalEntry';
@@ -12,7 +11,6 @@ import About from './components/About';
 
 function MainApp({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('journal');
-  const { theme } = useTheme();
   const { habits, loading: habitsLoading, addHabit, updateHabit, deleteHabit } = useHabits(user.id);
   const { 
     entries, 
