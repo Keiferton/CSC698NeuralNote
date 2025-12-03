@@ -1,14 +1,17 @@
 import React, { useState, useCallback } from 'react';
 import './App.css';
 import { useUser, useHabits, useJournal, useDashboard } from './hooks/useData';
+import { useTheme } from './context/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginForm from './components/LoginForm';
 import JournalEntry from './components/JournalEntry';
 import HabitManager from './components/HabitManager';
 import Dashboard from './components/Dashboard';
+import Settings from './components/Settings';
 
 function MainApp({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('journal');
+  const { theme } = useTheme();
   const { habits, loading: habitsLoading, addHabit, updateHabit, deleteHabit } = useHabits(user.id);
   const { 
     entries, 
@@ -84,6 +87,12 @@ function MainApp({ user, onLogout }) {
           >
             📊 Dashboard
           </button>
+          <button 
+            className={activeTab === 'settings' ? 'active' : ''} 
+            onClick={() => setActiveTab('settings')}
+          >
+            ⚙️ Settings
+          </button>
         </nav>
       </header>
 
@@ -114,6 +123,10 @@ function MainApp({ user, onLogout }) {
             dashboard={dashboard}
             loading={dashboardLoading}
           />
+        )}
+        
+        {activeTab === 'settings' && (
+          <Settings />
         )}
       </main>
     </div>
