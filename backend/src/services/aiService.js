@@ -1,8 +1,12 @@
 /**
  * AI Service for generating journal reflections and detecting habits
- * This is a mock implementation that simulates AI responses.
- * In production, this would connect to an actual AI API (e.g., OpenAI, Anthropic).
+ * Uses Hugging Face Inference API for text generation and local processing for emotion detection.
  */
+
+const { HfInference } = require('@huggingface/inference');
+
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE === 'true';
 
 // Common emotion keywords for detection
 const emotionKeywords = {
@@ -92,11 +96,58 @@ function detectEmotion(content) {
 }
 
 /**
- * Generate a summary of the journal entry
+ * Generate a summary of the journal entry using Hugging Face
+ * @param {string} content - The journal entry content
+ * @returns {Promise<string>} - A brief summary
+ */
+async function generateSummary(content) {
+  // If Hugging Face is not enabled or no API key, fallback to local generation
+  if (!USE_HUGGINGFACE || !process.env.HUGGINGFACE_API_KEY) {
+    console.log('[AI] Summarization: Using local fallback (HF disabled or no API key)');
+    return generateSummaryLocal(content);
+  }
+
+  try {
+    console.log('[AI] Summarization: Starting with BART model');
+    console.log(`[AI] Content length: ${content.length} characters`);
+    
+    // Use the summarization task instead of text generation for better results
+    const response = await hf.summarization({
+      model: 'facebook/bart-large-cnn',
+      inputs: content,
+      parameters: {
+        max_length: 50,
+        min_length: 20
+      }
+    });
+
+    console.log('[AI] Summarization response:', JSON.stringify(response, null, 2));
+    
+    let summary = response[0]?.summary_text || '';
+    
+    console.log(`[AI] Generated summary: "${summary}"`);
+    
+    // If empty or too short, fall back to local
+    if (!summary || summary.length < 10) {
+      console.log('[AI] Summary too short, using local generation');
+      return generateSummaryLocal(content);
+    }
+    
+    return summary;
+  } catch (error) {
+    console.error('[AI] Hugging Face API error for summary:', error);
+    console.error('[AI] Error details:', error.message);
+    console.error('[AI] Full error:', JSON.stringify(error, null, 2));
+    return generateSummaryLocal(content);
+  }
+}
+
+/**
+ * Fallback local summary generation
  * @param {string} content - The journal entry content
  * @returns {string} - A brief summary
  */
-function generateSummary(content) {
+function generateSummaryLocal(content) {
   // Extract key sentences (simplified approach)
   const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
   
@@ -114,11 +165,11 @@ function generateSummary(content) {
 }
 
 /**
- * Get a random affirmation based on the detected emotion
+ * Get a random affirmation based on the detected emotion (local fallback)
  * @param {string} emotion - The detected emotion
  * @returns {string} - An affirmation
  */
-function getAffirmation(emotion) {
+function getAffirmationLocal(emotion) {
   const emotionAffirmations = affirmations[emotion] || affirmations.neutral;
   const randomIndex = Math.floor(Math.random() * emotionAffirmations.length);
   return emotionAffirmations[randomIndex];
@@ -176,12 +227,12 @@ function detectCompletedHabits(content, userHabits) {
  * Generate a full AI reflection for a journal entry
  * @param {string} content - The journal entry content
  * @param {Array} userHabits - Array of user's habits
- * @returns {Object} - Object containing summary, emotion, affirmation, and detectedHabits
+ * @returns {Promise<Object>} - Object containing summary, emotion, affirmation, and detectedHabits
  */
-function generateReflection(content, userHabits = []) {
+async function generateReflection(content, userHabits = []) {
   const emotion = detectEmotion(content);
-  const summary = generateSummary(content);
-  const affirmation = getAffirmation(emotion);
+  const summary = await generateSummary(content);
+  const affirmation = await generateAffirmation(emotion);
   const detectedHabits = detectCompletedHabits(content, userHabits);
   
   return {
@@ -192,10 +243,65 @@ function generateReflection(content, userHabits = []) {
   };
 }
 
+/**
+ * Generate an affirmation using Hugging Face or fallback to local
+ * @param {string} emotion - The detected emotion
+ * @returns {Promise<string>} - An affirmation
+ */
+async function generateAffirmation(emotion) {
+  if (!USE_HUGGINGFACE || !process.env.HUGGINGFACE_API_KEY) {
+    return getAffirmationLocal(emotion);
+  }
+
+  try {
+    const emotionDescription = {
+      happy: 'joyful and positive',
+      sad: 'sad and melancholic',
+      anxious: 'anxious and worried',
+      angry: 'frustrated and angry',
+      calm: 'calm and peaceful',
+      motivated: 'motivated and inspired',
+      tired: 'tired and exhausted',
+      neutral: 'neutral'
+    }[emotion] || 'neutral';
+
+    const prompt = `Write a short, encouraging affirmation (1 sentence, max 20 words) for someone feeling ${emotionDescription}. Only provide the affirmation, nothing else:\n\nAffirmation:`;
+    
+    const response = await hf.textGeneration({
+      model: 'mistralai/Mistral-7B-Instruct-v0.1',
+      inputs: prompt,
+      parameters: {
+        max_new_tokens: 50,
+        temperature: 0.7,
+        do_sample: false
+      }
+    });
+
+    // Extract only the generated text (not the prompt)
+    const fullText = response.generated_text;
+    const affirmationStart = fullText.indexOf('Affirmation:') + 'Affirmation:'.length;
+    let affirmation = fullText.substring(affirmationStart).trim();
+    
+    // Clean up any extra content
+    affirmation = affirmation.split('\n')[0].trim();
+    
+    // If empty or too short, fall back to local
+    if (!affirmation || affirmation.length < 5) {
+      return getAffirmationLocal(emotion);
+    }
+    
+    return affirmation;
+  } catch (error) {
+    console.error('Hugging Face API error for affirmation:', error.message);
+    return getAffirmationLocal(emotion);
+  }
+}
+
 module.exports = {
   generateReflection,
   detectEmotion,
   generateSummary,
-  getAffirmation,
+  generateAffirmation,
+  getAffirmationLocal,
   detectCompletedHabits
 };
