@@ -16,6 +16,11 @@ class ErrorBoundary extends React.Component {
   }
 
   handleReset = () => {
+    // Reset error state
+    // Note: React Error Boundaries cannot automatically recover from errors.
+    // The component tree that threw the error must be remounted by the parent.
+    // In real apps, "Try Again" typically triggers navigation or state changes
+    // that cause the parent to remount the component tree with a new key.
     this.setState({ hasError: false, error: null });
   };
 
