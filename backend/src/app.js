@@ -28,6 +28,29 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Debug stats endpoint
+app.get('/api/debug/stats', (req, res) => {
+  res.json({
+    ai: {
+      provider: process.env.USE_HUGGINGFACE === 'true' ? 'Hugging Face' : 'Local (Mock)',
+      hasApiKey: !!process.env.HUGGINGFACE_API_KEY,
+      apiKeyPreview: process.env.HUGGINGFACE_API_KEY ? 
+        process.env.HUGGINGFACE_API_KEY.substring(0, 10) + '...' : 'Not set',
+      models: {
+        summarization: 'facebook/bart-large-cnn',
+        affirmation: 'mistralai/Mistral-7B-Instruct-v0.1'
+      }
+    },
+    environment: {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || 3001,
+      corsEnabled: true
+    },
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // API Routes
 app.use('/api/users', usersRoutes);
 app.use('/api/habits', habitsRoutes);

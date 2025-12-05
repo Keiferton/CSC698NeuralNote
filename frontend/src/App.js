@@ -8,6 +8,7 @@ import HabitManager from './components/HabitManager';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import About from './components/About';
+import DebugPanel from './components/DebugPanel';
 
 function MainApp({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('journal');
@@ -165,6 +166,7 @@ function App() {
   return (
     <ErrorBoundary>
       <MainApp user={user} onLogout={logout} />
+      <DebugPanel />
     </ErrorBoundary>
   );
 }

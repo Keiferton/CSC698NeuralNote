@@ -30,7 +30,7 @@ router.get('/user/:userId', (req, res) => {
 });
 
 // Create a new journal entry with AI analysis
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { userId, content } = req.body;
 
@@ -47,8 +47,8 @@ router.post('/', (req, res) => {
     // Get user's habits for detection
     const userHabits = Habit.findByUserId(userId);
     
-    // Generate AI reflection
-    const reflection = aiService.generateReflection(entryContent, userHabits);
+    // Generate AI reflection (now async)
+    const reflection = await aiService.generateReflection(entryContent, userHabits);
     
     // Create the journal entry
     const entry = JournalEntry.create(
@@ -101,7 +101,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Update a journal entry
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { content } = req.body;
 
@@ -116,8 +116,8 @@ router.put('/:id', (req, res) => {
     // Get user's habits for detection
     const userHabits = Habit.findByUserId(existingEntry.user_id);
     
-    // Regenerate AI reflection with updated content
-    const reflection = aiService.generateReflection(entryContent, userHabits);
+    // Regenerate AI reflection with updated content (now async)
+    const reflection = await aiService.generateReflection(entryContent, userHabits);
     
     // Update the entry
     const entry = JournalEntry.update(
