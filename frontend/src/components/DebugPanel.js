@@ -114,7 +114,7 @@ const DebugPanel = () => {
                 <section className="debug-section">
                   <h4>Quick Links</h4>
                   <div className="quick-links">
-                    <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/debug/stats`} target="_blank" rel="noopener noreferrer">
+                    <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/debug/stats`} target="_blank" rel="noopener noreferrer">
                       View Stats JSON
                     </a>
                     <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/health`} target="_blank" rel="noopener noreferrer">

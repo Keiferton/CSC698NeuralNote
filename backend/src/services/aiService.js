@@ -108,36 +108,62 @@ async function generateSummary(content) {
   }
 
   try {
-    console.log('[AI] Summarization: Starting with BART model');
+    console.log('[AI] Summarization: Starting with text generation model');
     console.log(`[AI] Content length: ${content.length} characters`);
-    
-    // Use the summarization task instead of text generation for better results
-    const response = await hf.summarization({
-      model: 'facebook/bart-large-cnn',
-      inputs: content,
+
+    // For very short content, use local generation
+    if (content.length < 30) {
+      console.log('[AI] Content too short, using local generation');
+      return generateSummaryLocal(content);
+    }
+
+    // Use text generation with a prompt to create objective summaries
+    const prompt = `Read this journal entry and create a brief, objective summary that lists the key activities, events, and emotional state. Focus on what happened, not repeating the original text.
+
+Journal entry: "${content}"
+
+Objective summary (1-2 sentences):`;
+
+    const response = await hf.textGeneration({
+      model: 'mistralai/Mistral-7B-Instruct-v0.1',
+      inputs: prompt,
       parameters: {
-        max_length: 50,
-        min_length: 20
+        max_new_tokens: 80,
+        temperature: 0.3,
+        do_sample: true,
+        top_p: 0.9,
+        return_full_text: false
       }
     });
 
     console.log('[AI] Summarization response:', JSON.stringify(response, null, 2));
-    
-    let summary = response[0]?.summary_text || '';
-    
+
+    let summary = response.generated_text || '';
+
+    // Clean up the summary
+    summary = summary.split('\n')[0].trim(); // Take only first line
+    summary = summary.replace(/^(Summary:|Objective summary:|Here's a summary:)/i, '').trim();
+    summary = summary.replace(/^["']|["']$/g, '').trim(); // Remove quotes
+
     console.log(`[AI] Generated summary: "${summary}"`);
-    
-    // If empty or too short, fall back to local
-    if (!summary || summary.length < 10) {
-      console.log('[AI] Summary too short, using local generation');
+
+    // Check if the summary is just repeating the input
+    const summaryLower = summary.toLowerCase().trim();
+    const contentLower = content.toLowerCase().trim();
+
+    if (summaryLower === contentLower || contentLower.startsWith(summaryLower) || summaryLower.length < 10) {
+      console.log('[AI] Summary invalid or repeating input, using local generation');
       return generateSummaryLocal(content);
     }
-    
+
     return summary;
   } catch (error) {
     console.error('[AI] Hugging Face API error for summary:', error);
     console.error('[AI] Error details:', error.message);
-    console.error('[AI] Full error:', JSON.stringify(error, null, 2));
+    if (error.response) {
+      console.error('[AI] Response status:', error.response.status);
+      console.error('[AI] Response data:', error.response.data);
+    }
     return generateSummaryLocal(content);
   }
 }
@@ -148,20 +174,134 @@ async function generateSummary(content) {
  * @returns {string} - A brief summary
  */
 function generateSummaryLocal(content) {
-  // Extract key sentences (simplified approach)
-  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  
-  if (sentences.length === 0) {
-    return "A brief moment of reflection was captured today.";
+  console.log('[AI] Using local summary generation');
+
+  const lowerContent = content.toLowerCase();
+
+  // Extract emotion and theme
+  const emotion = detectEmotion(content);
+  const theme = detectMainTheme(content);
+
+  // Extract activities and events
+  const activities = extractActivities(content);
+
+  // Build an objective summary
+  let summary = '';
+
+  // Start with emotional state if detected
+  if (emotion !== 'neutral') {
+    summary = `Experienced a ${emotion} day. `;
   }
-  
-  if (sentences.length === 1) {
-    return sentences[0].trim() + ".";
+
+  // Add activities if found
+  if (activities.length > 0) {
+    if (activities.length === 1) {
+      summary += activities[0];
+    } else if (activities.length === 2) {
+      summary += `${activities[0]} and ${activities[1]}`;
+    } else {
+      // List first 2-3 notable activities
+      const topActivities = activities.slice(0, 2);
+      summary += topActivities.join(', ');
+      if (activities.length > 2) {
+        summary += `, and more`;
+      }
+    }
+    summary += '.';
+  } else {
+    // If no activities found, provide a theme-based summary
+    summary += `Reflected on ${theme}.`;
   }
-  
-  // Get the first sentence or two for a basic summary
-  const summaryParts = sentences.slice(0, Math.min(2, sentences.length));
-  return summaryParts.map(s => s.trim()).join('. ') + '.';
+
+  return summary.trim();
+}
+
+/**
+ * Extract activities and notable events from journal content
+ * @param {string} content - The journal entry content
+ * @returns {Array<string>} - List of extracted activities
+ */
+function extractActivities(content) {
+  const activities = [];
+  const lowerContent = content.toLowerCase();
+
+  // Action verb patterns to look for
+  const actionPatterns = [
+    // Past tense verbs indicating completed actions
+    { pattern: /\b(went to|visited|attended)\s+([^.!?,]+)/gi, prefix: 'went to' },
+    { pattern: /\b(met with|saw|talked to|spoke with)\s+([^.!?,]+)/gi, prefix: 'met with' },
+    { pattern: /\b(worked on|completed|finished|did)\s+([^.!?,]+)/gi, prefix: 'worked on' },
+    { pattern: /\b(exercised|ran|walked|jogged|swam|practiced)\s*([^.!?,]*)/gi, prefix: 'exercised' },
+    { pattern: /\b(ate|had|cooked|made)\s+(breakfast|lunch|dinner|meal|food|[^.!?,]+)/gi, prefix: 'ate' },
+    { pattern: /\b(read|watched|listened to|played)\s+([^.!?,]+)/gi, prefix: 'engaged in' },
+    { pattern: /\b(studied|learned|practiced)\s+([^.!?,]+)/gi, prefix: 'studied' },
+    { pattern: /\b(cleaned|organized|tidied)\s+([^.!?,]+)/gi, prefix: 'cleaned' },
+    { pattern: /\b(felt|was|became)\s+(stressed|overwhelmed|anxious|happy|sad|tired|energized|motivated)/gi, prefix: 'felt' }
+  ];
+
+  // Extract matches
+  for (const { pattern, prefix } of actionPatterns) {
+    const matches = content.matchAll(pattern);
+    for (const match of matches) {
+      const activity = match[0].trim();
+      // Clean up and limit length
+      let cleaned = activity.substring(0, 60).trim();
+      if (activity.length > 60) cleaned += '...';
+      activities.push(cleaned);
+      if (activities.length >= 4) break; // Limit to 4 activities
+    }
+    if (activities.length >= 4) break;
+  }
+
+  // If no activities found with patterns, try to extract key sentences with action verbs
+  if (activities.length === 0) {
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    for (const sentence of sentences) {
+      const sentenceLower = sentence.toLowerCase();
+      // Check for common action words
+      const hasAction = /\b(went|did|had|was|got|made|took|felt|saw|met|worked|completed|finished|started)\b/.test(sentenceLower);
+      if (hasAction) {
+        let cleaned = sentence.trim();
+        if (cleaned.length > 70) {
+          cleaned = cleaned.substring(0, 67) + '...';
+        }
+        activities.push(cleaned);
+        if (activities.length >= 2) break; // Limit to 2 sentences
+      }
+    }
+  }
+
+  return activities;
+}
+
+/**
+ * Detect the main theme of the journal entry
+ * @param {string} content - The journal entry content
+ * @returns {string} - A brief theme description
+ */
+function detectMainTheme(content) {
+  const lowerContent = content.toLowerCase();
+
+  // Common themes
+  if (lowerContent.includes('work') || lowerContent.includes('job') || lowerContent.includes('meeting')) {
+    return 'work and career';
+  }
+  if (lowerContent.includes('family') || lowerContent.includes('parent') || lowerContent.includes('child')) {
+    return 'family life';
+  }
+  if (lowerContent.includes('friend') || lowerContent.includes('social')) {
+    return 'relationships and social connections';
+  }
+  if (lowerContent.includes('health') || lowerContent.includes('exercise') || lowerContent.includes('workout')) {
+    return 'health and wellness';
+  }
+  if (lowerContent.includes('goal') || lowerContent.includes('plan') || lowerContent.includes('future')) {
+    return 'personal goals and aspirations';
+  }
+
+  // Fallback to detected emotion
+  const emotion = detectEmotion(content);
+  return `${emotion} moments`;
 }
 
 /**
