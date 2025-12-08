@@ -331,6 +331,36 @@ describe('Health Check', () => {
 });
 
 describe('Debug Stats API', () => {
+  // Helper function to temporarily set environment variables
+  const withEnvVars = (envVars, testFn) => {
+    return async () => {
+      const originalValues = {};
+      
+      // Save original values and set new ones
+      for (const [key, value] of Object.entries(envVars)) {
+        originalValues[key] = process.env[key];
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+      
+      try {
+        await testFn();
+      } finally {
+        // Restore original values
+        for (const [key, originalValue] of Object.entries(originalValues)) {
+          if (originalValue === undefined) {
+            delete process.env[key];
+          } else {
+            process.env[key] = originalValue;
+          }
+        }
+      }
+    };
+  };
+
   describe('GET /api/debug/stats', () => {
     it('should return correct AI configuration information', async () => {
       const res = await request(app).get('/api/debug/stats');
@@ -367,85 +397,47 @@ describe('Debug Stats API', () => {
       expect(typeof res.body.uptime).toBe('number');
     });
 
-    it('should properly mask API key when set', async () => {
-      // Save original value
-      const originalApiKey = process.env.HUGGINGFACE_API_KEY;
-      
-      // Set a test API key
-      process.env.HUGGINGFACE_API_KEY = 'hf_testkey1234567890abcdef';
-      
-      const res = await request(app).get('/api/debug/stats');
-      
-      expect(res.status).toBe(200);
-      expect(res.body.ai.hasApiKey).toBe(true);
-      expect(res.body.ai.apiKeyPreview).toBe('hf_testkey...');
-      expect(res.body.ai.apiKeyPreview).not.toContain('1234567890abcdef');
-      
-      // Restore original value
-      if (originalApiKey) {
-        process.env.HUGGINGFACE_API_KEY = originalApiKey;
-      } else {
-        delete process.env.HUGGINGFACE_API_KEY;
+    it('should properly mask API key when set', withEnvVars(
+      { HUGGINGFACE_API_KEY: 'hf_testkey1234567890abcdef' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.hasApiKey).toBe(true);
+        expect(res.body.ai.apiKeyPreview).toBe('hf_testkey...');
+        expect(res.body.ai.apiKeyPreview).not.toContain('1234567890abcdef');
       }
-    });
+    ));
 
-    it('should handle missing API key', async () => {
-      // Save original value
-      const originalApiKey = process.env.HUGGINGFACE_API_KEY;
-      
-      // Remove API key
-      delete process.env.HUGGINGFACE_API_KEY;
-      
-      const res = await request(app).get('/api/debug/stats');
-      
-      expect(res.status).toBe(200);
-      expect(res.body.ai.hasApiKey).toBe(false);
-      expect(res.body.ai.apiKeyPreview).toBe('Not set');
-      
-      // Restore original value
-      if (originalApiKey) {
-        process.env.HUGGINGFACE_API_KEY = originalApiKey;
+    it('should handle missing API key', withEnvVars(
+      { HUGGINGFACE_API_KEY: undefined },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.hasApiKey).toBe(false);
+        expect(res.body.ai.apiKeyPreview).toBe('Not set');
       }
-    });
+    ));
 
-    it('should show Hugging Face provider when USE_HUGGINGFACE is true', async () => {
-      // Save original value
-      const originalUseHf = process.env.USE_HUGGINGFACE;
-      
-      // Set to use Hugging Face
-      process.env.USE_HUGGINGFACE = 'true';
-      
-      const res = await request(app).get('/api/debug/stats');
-      
-      expect(res.status).toBe(200);
-      expect(res.body.ai.provider).toBe('Hugging Face');
-      
-      // Restore original value
-      if (originalUseHf) {
-        process.env.USE_HUGGINGFACE = originalUseHf;
-      } else {
-        delete process.env.USE_HUGGINGFACE;
+    it('should show Hugging Face provider when USE_HUGGINGFACE is true', withEnvVars(
+      { USE_HUGGINGFACE: 'true' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.provider).toBe('Hugging Face');
       }
-    });
+    ));
 
-    it('should show Local (Mock) provider when USE_HUGGINGFACE is not true', async () => {
-      // Save original value
-      const originalUseHf = process.env.USE_HUGGINGFACE;
-      
-      // Set to not use Hugging Face
-      process.env.USE_HUGGINGFACE = 'false';
-      
-      const res = await request(app).get('/api/debug/stats');
-      
-      expect(res.status).toBe(200);
-      expect(res.body.ai.provider).toBe('Local (Mock)');
-      
-      // Restore original value
-      if (originalUseHf) {
-        process.env.USE_HUGGINGFACE = originalUseHf;
-      } else {
-        delete process.env.USE_HUGGINGFACE;
+    it('should show Local (Mock) provider when USE_HUGGINGFACE is not true', withEnvVars(
+      { USE_HUGGINGFACE: 'false' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.provider).toBe('Local (Mock)');
       }
-    });
+    ));
   });
 });
