@@ -31,11 +31,13 @@ const DebugPanel = () => {
       }
     };
 
-    // Initial fetch
+    // Initial fetch when panel opens
     fetchStats();
 
-    // Refresh every 5 seconds
+    // Refresh every 5 seconds while panel is open
     const interval = setInterval(fetchStats, 5000);
+    
+    // Cleanup: stop fetching when panel closes or component unmounts
     return () => clearInterval(interval);
   }, [isOpen]);
 
