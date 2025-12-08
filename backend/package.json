@@ -17,6 +17,7 @@
   "license": "ISC",
   "description": "NeuralNote backend API for AI-assisted journaling and habit tracking",
   "dependencies": {
+    "@huggingface/inference": "^4.13.4",
     "better-sqlite3": "^11.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
