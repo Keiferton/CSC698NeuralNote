@@ -7,6 +7,11 @@ const DebugPanel = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Only fetch stats when the panel is open
+    if (!isOpen) {
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         console.log('[DebugPanel] Fetching stats...');
@@ -32,7 +37,7 @@ const DebugPanel = () => {
     // Refresh every 5 seconds
     const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isOpen]);
 
   const toggleOpen = () => {
     console.log('[DebugPanel] Toggle clicked, isOpen:', isOpen);
