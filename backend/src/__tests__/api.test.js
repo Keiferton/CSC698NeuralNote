@@ -329,3 +329,115 @@ describe('Health Check', () => {
     expect(res.body.status).toBe('ok');
   });
 });
+
+describe('Debug Stats API', () => {
+  // Helper function to temporarily set environment variables
+  const withEnvVars = (envVars, testFn) => {
+    return async () => {
+      const originalValues = {};
+      
+      // Save original values and set new ones
+      for (const [key, value] of Object.entries(envVars)) {
+        originalValues[key] = process.env[key];
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+      
+      try {
+        await testFn();
+      } finally {
+        // Restore original values
+        for (const [key, originalValue] of Object.entries(originalValues)) {
+          if (originalValue === undefined) {
+            delete process.env[key];
+          } else {
+            process.env[key] = originalValue;
+          }
+        }
+      }
+    };
+  };
+
+  describe('GET /api/debug/stats', () => {
+    it('should return correct AI configuration information', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('ai');
+      expect(res.body.ai).toHaveProperty('provider');
+      expect(res.body.ai).toHaveProperty('hasApiKey');
+      expect(res.body.ai).toHaveProperty('apiKeyPreview');
+      expect(res.body.ai).toHaveProperty('models');
+      expect(res.body.ai.models).toHaveProperty('summarization');
+      expect(res.body.ai.models).toHaveProperty('affirmation');
+      expect(res.body.ai.models.summarization).toBe('facebook/bart-large-cnn');
+      expect(res.body.ai.models.affirmation).toBe('mistralai/Mistral-7B-Instruct-v0.1');
+    });
+
+    it('should return environment information', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('environment');
+      expect(res.body.environment).toHaveProperty('nodeEnv');
+      expect(res.body.environment).toHaveProperty('port');
+      expect(res.body.environment).toHaveProperty('corsEnabled');
+      expect(res.body.environment.corsEnabled).toBe(true);
+    });
+
+    it('should return timestamp and uptime', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('timestamp');
+      expect(res.body).toHaveProperty('uptime');
+      expect(typeof res.body.uptime).toBe('number');
+    });
+
+    it('should properly mask API key when set', withEnvVars(
+      { HUGGINGFACE_API_KEY: 'hf_testkey1234567890abcdef' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.hasApiKey).toBe(true);
+        expect(res.body.ai.apiKeyPreview).toBe('hf_testkey...');
+        expect(res.body.ai.apiKeyPreview).not.toContain('1234567890abcdef');
+      }
+    ));
+
+    it('should handle missing API key', withEnvVars(
+      { HUGGINGFACE_API_KEY: undefined },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.hasApiKey).toBe(false);
+        expect(res.body.ai.apiKeyPreview).toBe('Not set');
+      }
+    ));
+
+    it('should show Hugging Face provider when USE_HUGGINGFACE is true', withEnvVars(
+      { USE_HUGGINGFACE: 'true' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.provider).toBe('Hugging Face');
+      }
+    ));
+
+    it('should show Local (Mock) provider when USE_HUGGINGFACE is not true', withEnvVars(
+      { USE_HUGGINGFACE: 'false' },
+      async () => {
+        const res = await request(app).get('/api/debug/stats');
+        
+        expect(res.status).toBe(200);
+        expect(res.body.ai.provider).toBe('Local (Mock)');
+      }
+    ));
+  });
+});
