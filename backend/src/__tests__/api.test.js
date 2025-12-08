@@ -329,3 +329,123 @@ describe('Health Check', () => {
     expect(res.body.status).toBe('ok');
   });
 });
+
+describe('Debug Stats API', () => {
+  describe('GET /api/debug/stats', () => {
+    it('should return correct AI configuration information', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('ai');
+      expect(res.body.ai).toHaveProperty('provider');
+      expect(res.body.ai).toHaveProperty('hasApiKey');
+      expect(res.body.ai).toHaveProperty('apiKeyPreview');
+      expect(res.body.ai).toHaveProperty('models');
+      expect(res.body.ai.models).toHaveProperty('summarization');
+      expect(res.body.ai.models).toHaveProperty('affirmation');
+      expect(res.body.ai.models.summarization).toBe('facebook/bart-large-cnn');
+      expect(res.body.ai.models.affirmation).toBe('mistralai/Mistral-7B-Instruct-v0.1');
+    });
+
+    it('should return environment information', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('environment');
+      expect(res.body.environment).toHaveProperty('nodeEnv');
+      expect(res.body.environment).toHaveProperty('port');
+      expect(res.body.environment).toHaveProperty('corsEnabled');
+      expect(res.body.environment.corsEnabled).toBe(true);
+    });
+
+    it('should return timestamp and uptime', async () => {
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('timestamp');
+      expect(res.body).toHaveProperty('uptime');
+      expect(typeof res.body.uptime).toBe('number');
+    });
+
+    it('should properly mask API key when set', async () => {
+      // Save original value
+      const originalApiKey = process.env.HUGGINGFACE_API_KEY;
+      
+      // Set a test API key
+      process.env.HUGGINGFACE_API_KEY = 'hf_testkey1234567890abcdef';
+      
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body.ai.hasApiKey).toBe(true);
+      expect(res.body.ai.apiKeyPreview).toBe('hf_testkey...');
+      expect(res.body.ai.apiKeyPreview).not.toContain('1234567890abcdef');
+      
+      // Restore original value
+      if (originalApiKey) {
+        process.env.HUGGINGFACE_API_KEY = originalApiKey;
+      } else {
+        delete process.env.HUGGINGFACE_API_KEY;
+      }
+    });
+
+    it('should handle missing API key', async () => {
+      // Save original value
+      const originalApiKey = process.env.HUGGINGFACE_API_KEY;
+      
+      // Remove API key
+      delete process.env.HUGGINGFACE_API_KEY;
+      
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body.ai.hasApiKey).toBe(false);
+      expect(res.body.ai.apiKeyPreview).toBe('Not set');
+      
+      // Restore original value
+      if (originalApiKey) {
+        process.env.HUGGINGFACE_API_KEY = originalApiKey;
+      }
+    });
+
+    it('should show Hugging Face provider when USE_HUGGINGFACE is true', async () => {
+      // Save original value
+      const originalUseHf = process.env.USE_HUGGINGFACE;
+      
+      // Set to use Hugging Face
+      process.env.USE_HUGGINGFACE = 'true';
+      
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body.ai.provider).toBe('Hugging Face');
+      
+      // Restore original value
+      if (originalUseHf) {
+        process.env.USE_HUGGINGFACE = originalUseHf;
+      } else {
+        delete process.env.USE_HUGGINGFACE;
+      }
+    });
+
+    it('should show Local (Mock) provider when USE_HUGGINGFACE is not true', async () => {
+      // Save original value
+      const originalUseHf = process.env.USE_HUGGINGFACE;
+      
+      // Set to not use Hugging Face
+      process.env.USE_HUGGINGFACE = 'false';
+      
+      const res = await request(app).get('/api/debug/stats');
+      
+      expect(res.status).toBe(200);
+      expect(res.body.ai.provider).toBe('Local (Mock)');
+      
+      // Restore original value
+      if (originalUseHf) {
+        process.env.USE_HUGGINGFACE = originalUseHf;
+      } else {
+        delete process.env.USE_HUGGINGFACE;
+      }
+    });
+  });
+});
