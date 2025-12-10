@@ -199,11 +199,11 @@ async function generateSummary(content) {
       messages: [
         {
           role: "system",
-          content: "You are a journal analysis assistant. Create accurate, objective summaries of journal entries that capture all key activities, events, and emotional states. Write a concise paragraph that doesn't miss important details."
+          content: "You are a journal analysis assistant. Create accurate, objective summaries of journal entries that capture all key activities, events, and emotional states. Write a concise paragraph that doesn't miss important details. Always address the writer directly using 'You' instead of referring to them in third person (e.g., 'You experienced...' not 'The writer experienced...')."
         },
         {
           role: "user",
-          content: `Read this journal entry and create an accurate, objective summary that captures all the key activities, events, and emotional state. Focus on what happened and how the person felt.\n\nJournal entry: "${content}"\n\nObjective summary (short paragraph):`
+          content: `Read this journal entry and create an accurate, objective summary that captures all the key activities, events, and emotional state. Focus on what happened and how the person felt. Address the writer directly using "You" (e.g., "You experienced..." or "You felt...") instead of referring to them in third person.\n\nJournal entry: "${content}"\n\nObjective summary (short paragraph):`
         }
       ],
       model: "llama-3.1-8b-instant",
@@ -269,7 +269,7 @@ async function generateSummaryLocal(content) {
 
   // Start with emotional state if detected
   if (emotion !== 'neutral') {
-    summary = `Experienced a ${emotion} day. `;
+    summary = `You experienced a ${emotion} day. `;
   }
 
   // Add activities if found
@@ -289,7 +289,7 @@ async function generateSummaryLocal(content) {
     summary += '.';
   } else {
     // If no activities found, provide a theme-based summary
-    summary += `Reflected on ${theme}.`;
+    summary += `You reflected on ${theme}.`;
   }
 
   return summary.trim();
