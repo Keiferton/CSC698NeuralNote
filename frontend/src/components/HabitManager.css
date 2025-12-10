@@ -16,6 +16,9 @@
 .habit-manager h2 {
   margin: 0;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .add-habit-btn {

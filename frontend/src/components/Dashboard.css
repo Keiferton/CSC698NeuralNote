@@ -16,6 +16,9 @@
 .dashboard h2 {
   margin-bottom: 24px;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .stats-grid {
@@ -76,6 +79,9 @@
   margin: 0 0 16px 0;
   font-size: 1rem;
   color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .emotion-chart.empty,

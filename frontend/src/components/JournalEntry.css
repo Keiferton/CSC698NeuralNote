@@ -9,6 +9,9 @@
 .journal-section h2 {
   margin-bottom: 20px;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .journal-form {
@@ -135,6 +138,9 @@
   margin: 0 0 12px 0;
   color: #555;
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .reflection-item {
@@ -178,6 +184,9 @@
   margin: 0 0 12px 0;
   color: #555;
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .habits {

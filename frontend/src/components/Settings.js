@@ -1,13 +1,14 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import './Settings.css';
+import { FaCog, FaSun, FaMoon, FaSync } from 'react-icons/fa';
 
 function Settings() {
   const { theme, toggleTheme, setThemeTo } = useTheme();
 
   return (
     <div className="settings-container">
-      <h2>⚙️ Settings</h2>
+      <h2><FaCog /> Settings</h2>
       
       <div className="settings-section">
         <h3>Theme</h3>
@@ -19,7 +20,7 @@ function Settings() {
             onClick={() => setThemeTo('light')}
             title="Light theme"
           >
-            <span className="theme-icon">☀️</span>
+            <span className="theme-icon"><FaSun /></span>
             <span>Light</span>
           </button>
           
@@ -28,7 +29,7 @@ function Settings() {
             onClick={() => setThemeTo('dark')}
             title="Dark theme"
           >
-            <span className="theme-icon">🌙</span>
+            <span className="theme-icon"><FaMoon /></span>
             <span>Dark</span>
           </button>
           
@@ -37,7 +38,7 @@ function Settings() {
             onClick={toggleTheme}
             title="Toggle theme"
           >
-            <span className="theme-icon">🔄</span>
+            <span className="theme-icon"><FaSync /></span>
             <span>Toggle</span>
           </button>
         </div>

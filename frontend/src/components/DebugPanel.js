@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DebugPanel.css';
+import { FaBug, FaTools, FaTimes } from 'react-icons/fa';
 
 const DebugPanel = () => {
   const [stats, setStats] = useState(null);
@@ -53,18 +54,18 @@ const DebugPanel = () => {
         onClick={toggleOpen}
         title="Debug Panel"
       >
-        🐛
+        <FaBug />
       </button>
       
       {isOpen && (
         <div className="debug-panel">
           <div className="debug-header">
-            <h3>🔧 Debug Panel</h3>
+            <h3><FaTools /> Debug Panel</h3>
             <button 
               className="close-btn"
               onClick={toggleOpen}
             >
-              ✕
+              <FaTimes />
             </button>
           </div>
           

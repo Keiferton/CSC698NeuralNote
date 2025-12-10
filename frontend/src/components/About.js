@@ -1,24 +1,34 @@
 import React from 'react';
 import './About.css';
+import {
+  FaBrain,
+  FaBook,
+  FaCheckCircle,
+  FaChartBar,
+  FaPalette,
+  FaUserTie,
+  FaUser,
+  FaTools
+} from 'react-icons/fa';
 
 function About() {
   const developers = [
     {
       name: 'Keith',
       role: 'Project Lead & Full Stack Developer',
-      emoji: '👨‍💼',
+      icon: <FaUserTie />,
       bio: 'Architect of NeuralNote, overseeing the vision and implementation of AI-assisted journaling.'
     },
     {
       name: 'Hilary',
       role: 'Frontend Developer & UI/UX Designer',
-      emoji: '👩‍💻',
+      icon: <FaUser />,
       bio: 'Crafted beautiful user interfaces and intuitive experiences for NeuralNote users.'
     },
     {
       name: 'James',
       role: 'Backend Developer & Database Specialist',
-      emoji: '🔧',
+      icon: <FaTools />,
       bio: 'Built robust backend systems and optimized database architecture for NeuralNote.'
     }
   ];
@@ -26,7 +36,7 @@ function About() {
   return (
     <div className="about-container">
       <div className="about-header">
-        <h1>🧠 About NeuralNote</h1>
+        <h1><FaBrain /> About NeuralNote</h1>
         <p className="about-tagline">AI-assisted journaling and habit tracking for personal growth</p>
       </div>
 
@@ -43,22 +53,22 @@ function About() {
         <h2>Key Features</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <span className="feature-icon">📝</span>
+            <span className="feature-icon"><FaBook /></span>
             <h3>Smart Journaling</h3>
             <p>Write freely while our AI analyzes emotions, generates summaries, and provides affirmations.</p>
           </div>
           <div className="feature-card">
-            <span className="feature-icon">✅</span>
+            <span className="feature-icon"><FaCheckCircle /></span>
             <h3>Habit Tracking</h3>
             <p>Build and track habits with automatic detection from your journal entries.</p>
           </div>
           <div className="feature-card">
-            <span className="feature-icon">📊</span>
+            <span className="feature-icon"><FaChartBar /></span>
             <h3>Insights & Analytics</h3>
             <p>Track emotional trends, completion rates, and journaling streaks over time.</p>
           </div>
           <div className="feature-card">
-            <span className="feature-icon">🎨</span>
+            <span className="feature-icon"><FaPalette /></span>
             <h3>Theme Support</h3>
             <p>Choose between light and dark themes for comfortable journaling anytime.</p>
           </div>
@@ -70,7 +80,7 @@ function About() {
         <div className="team-grid">
           {developers.map((dev, index) => (
             <div key={index} className="team-card">
-              <div className="team-card-emoji">{dev.emoji}</div>
+              <div className="team-card-emoji">{dev.icon}</div>
               <h3>{dev.name}</h3>
               <p className="role">{dev.role}</p>
               <p className="bio">{dev.bio}</p>

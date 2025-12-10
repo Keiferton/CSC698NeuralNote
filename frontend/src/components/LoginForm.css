@@ -25,6 +25,10 @@
   font-size: 2rem;
   color: #333;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .login-header p {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './HabitManager.css';
+import { FaCheckCircle, FaEdit, FaTrash, FaLightbulb } from 'react-icons/fa';
 
 function HabitForm({ onSubmit, loading, onCancel, initialData = null }) {
   const [name, setName] = useState(initialData?.name || '');
@@ -87,10 +88,10 @@ function HabitCard({ habit, onEdit, onDelete }) {
       </div>
       <div className="habit-actions">
         <button onClick={() => setIsEditing(true)} className="edit-btn" title="Edit">
-          ✏️
+          <FaEdit />
         </button>
         <button onClick={handleDelete} className="delete-btn" title="Delete">
-          🗑️
+          <FaTrash />
         </button>
       </div>
     </div>
@@ -114,7 +115,7 @@ function HabitManager({ habits, onAddHabit, onUpdateHabit, onDeleteHabit, loadin
   return (
     <div className="habit-manager">
       <div className="header">
-        <h2>✅ My Habits</h2>
+        <h2><FaCheckCircle /> My Habits</h2>
         {!showForm && (
           <button onClick={() => setShowForm(true)} className="add-habit-btn">
             + New Habit
@@ -150,7 +151,7 @@ function HabitManager({ habits, onAddHabit, onUpdateHabit, onDeleteHabit, loadin
       )}
 
       <div className="habit-tip">
-        💡 <strong>Tip:</strong> When you write about completing a habit in your journal, 
+        <FaLightbulb /> <strong>Tip:</strong> When you write about completing a habit in your journal, 
         it will be automatically detected and checked off!
       </div>
     </div>

@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
 import './JournalEntry.css';
+import { 
+  FaRobot, 
+  FaHeart, 
+  FaStar, 
+  FaTrash, 
+  FaCheckCircle,
+  FaBook,
+  FaSmile,
+  FaSadTear,
+  FaFlushed,
+  FaAngry,
+  FaPeace,
+  FaDumbbell,
+  FaBed,
+  FaMeh
+} from 'react-icons/fa';
 
 function JournalEntryForm({ onSubmit, loading }) {
   const [content, setContent] = useState('');
@@ -22,7 +38,7 @@ function JournalEntryForm({ onSubmit, loading }) {
         rows={6}
       />
       <button type="submit" disabled={loading || !content.trim()}>
-        {loading ? 'Saving...' : '✨ Save & Analyze'}
+        {loading ? 'Saving...' : <><FaStar /> Save & Analyze</>}
       </button>
     </form>
   );
@@ -33,26 +49,26 @@ function AIReflection({ entry }) {
     return null;
   }
 
-  const emotionEmojis = {
-    happy: '😊',
-    sad: '😢',
-    anxious: '😰',
-    angry: '😤',
-    calm: '😌',
-    motivated: '💪',
-    tired: '😴',
-    neutral: '😐'
+  const emotionIcons = {
+    happy: <FaSmile />,
+    sad: <FaSadTear />,
+    anxious: <FaFlushed />,
+    angry: <FaAngry />,
+    calm: <FaPeace />,
+    motivated: <FaDumbbell />,
+    tired: <FaBed />,
+    neutral: <FaMeh />
   };
 
   return (
     <div className="ai-reflection">
-      <h4>🤖 AI Reflection</h4>
+      <h4><FaRobot /> AI Reflection</h4>
       
       {entry.ai_emotion && (
         <div className="reflection-item emotion">
           <span className="label">Detected Emotion:</span>
           <span className="value">
-            {emotionEmojis[entry.ai_emotion] || '😐'} {entry.ai_emotion}
+            {emotionIcons[entry.ai_emotion] || <FaMeh />} {entry.ai_emotion}
           </span>
         </div>
       )}
@@ -66,7 +82,7 @@ function AIReflection({ entry }) {
       
       {entry.ai_affirmation && (
         <div className="reflection-item affirmation">
-          <span className="label">💝 Affirmation:</span>
+          <span className="label"><FaHeart /> Affirmation:</span>
           <p className="value">{entry.ai_affirmation}</p>
         </div>
       )}
@@ -102,7 +118,7 @@ function JournalEntryCard({ entry, habits, onToggleHabit, onDelete }) {
           onClick={() => onDelete(entry.id)}
           title="Delete entry"
         >
-          🗑️
+          <FaTrash />
         </button>
       </div>
       
@@ -127,7 +143,7 @@ function JournalEntryCard({ entry, habits, onToggleHabit, onDelete }) {
       
       {habits.length > 0 && (
         <div className="habit-checklist">
-          <h4>✅ Habits</h4>
+          <h4><FaCheckCircle /> Habits</h4>
           <div className="habits">
             {habits.map(habit => (
               <label key={habit.id} className="habit-checkbox">
@@ -149,7 +165,7 @@ function JournalEntryCard({ entry, habits, onToggleHabit, onDelete }) {
 function JournalEntry({ entries, habits, onAddEntry, onDeleteEntry, onToggleHabit, loading }) {
   return (
     <div className="journal-section">
-      <h2>📝 Today's Journal</h2>
+      <h2><FaBook /> Today's Journal</h2>
       
       <JournalEntryForm onSubmit={onAddEntry} loading={loading} />
       

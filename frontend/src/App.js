@@ -9,6 +9,7 @@ import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import About from './components/About';
 import DebugPanel from './components/DebugPanel';
+import { FaBrain, FaBook, FaCheckCircle, FaChartBar, FaCog, FaInfoCircle } from 'react-icons/fa';
 
 function MainApp({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('journal');
@@ -62,7 +63,7 @@ function MainApp({ user, onLogout }) {
     <div className="app-container">
       <header className="app-header">
         <div className="header-content">
-          <h1>🧠 NeuralNote</h1>
+          <h1><FaBrain /> NeuralNote</h1>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
             <button onClick={onLogout} className="logout-btn">Logout</button>
@@ -73,31 +74,31 @@ function MainApp({ user, onLogout }) {
             className={activeTab === 'journal' ? 'active' : ''} 
             onClick={() => setActiveTab('journal')}
           >
-            📝 Journal
+            <FaBook /> Journal
           </button>
           <button 
             className={activeTab === 'habits' ? 'active' : ''} 
             onClick={() => setActiveTab('habits')}
           >
-            ✅ Habits
+            <FaCheckCircle /> Habits
           </button>
           <button 
             className={activeTab === 'dashboard' ? 'active' : ''} 
             onClick={() => setActiveTab('dashboard')}
           >
-            📊 Dashboard
+            <FaChartBar /> Dashboard
           </button>
           <button 
             className={activeTab === 'settings' ? 'active' : ''} 
             onClick={() => setActiveTab('settings')}
           >
-            ⚙️ Settings
+            <FaCog /> Settings
           </button>
           <button 
             className={activeTab === 'about' ? 'active' : ''} 
             onClick={() => setActiveTab('about')}
           >
-            ℹ️ About
+            <FaInfoCircle /> About
           </button>
         </nav>
       </header>

@@ -62,6 +62,9 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .close-btn {

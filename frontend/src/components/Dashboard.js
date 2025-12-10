@@ -1,5 +1,20 @@
 import React from 'react';
 import './Dashboard.css';
+import {
+  FaSmile,
+  FaSadTear,
+  FaFlushed,
+  FaAngry,
+  FaPeace,
+  FaDumbbell,
+  FaBed,
+  FaMeh,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaBook,
+  FaFire,
+  FaChartBar
+} from 'react-icons/fa';
 
 function StatCard({ icon, label, value }) {
   return (
@@ -28,15 +43,15 @@ function EmotionChart({ emotionDistribution }) {
     neutral: '#9ca3af'
   };
 
-  const emotionEmojis = {
-    happy: '😊',
-    sad: '😢',
-    anxious: '😰',
-    angry: '😤',
-    calm: '😌',
-    motivated: '💪',
-    tired: '😴',
-    neutral: '😐'
+  const emotionIcons = {
+    happy: <FaSmile />,
+    sad: <FaSadTear />,
+    anxious: <FaFlushed />,
+    angry: <FaAngry />,
+    calm: <FaPeace />,
+    motivated: <FaDumbbell />,
+    tired: <FaBed />,
+    neutral: <FaMeh />
   };
 
   if (emotions.length === 0) {
@@ -49,12 +64,12 @@ function EmotionChart({ emotionDistribution }) {
 
   return (
     <div className="emotion-chart">
-      <h3>😊 Emotion Distribution</h3>
+      <h3><FaSmile /> Emotion Distribution</h3>
       <div className="emotion-bars">
         {emotions.map(([emotion, count]) => (
           <div key={emotion} className="emotion-bar-container">
             <div className="emotion-label">
-              <span className="emoji">{emotionEmojis[emotion] || '😐'}</span>
+              <span className="emoji">{emotionIcons[emotion] || <FaMeh />}</span>
               <span className="name">{emotion}</span>
             </div>
             <div className="bar-wrapper">
@@ -83,7 +98,7 @@ function WeeklyActivity({ weeklyActivity }) {
 
   return (
     <div className="weekly-activity">
-      <h3>📅 Weekly Activity</h3>
+      <h3><FaCalendarAlt /> Weekly Activity</h3>
       <div className="activity-chart">
         {weeklyActivity.map((day, index) => (
           <div key={index} className="day-column">
@@ -116,7 +131,7 @@ function HabitProgress({ habitCompletions }) {
 
   return (
     <div className="habit-progress">
-      <h3>✅ Habit Completions (Last 30 Days)</h3>
+      <h3><FaCheckCircle /> Habit Completions (Last 30 Days)</h3>
       <div className="habit-list">
         {habitCompletions.map(habit => (
           <div key={habit.id} className="habit-row">
@@ -142,20 +157,20 @@ function RecentEntries({ entries }) {
     });
   };
 
-  const emotionEmojis = {
-    happy: '😊',
-    sad: '😢',
-    anxious: '😰',
-    angry: '😤',
-    calm: '😌',
-    motivated: '💪',
-    tired: '😴',
-    neutral: '😐'
+  const emotionIcons = {
+    happy: <FaSmile />,
+    sad: <FaSadTear />,
+    anxious: <FaFlushed />,
+    angry: <FaAngry />,
+    calm: <FaPeace />,
+    motivated: <FaDumbbell />,
+    tired: <FaBed />,
+    neutral: <FaMeh />
   };
 
   return (
     <div className="recent-entries">
-      <h3>📝 Recent Entries</h3>
+      <h3><FaBook /> Recent Entries</h3>
       <div className="entries-list">
         {entries.slice(0, 3).map(entry => (
           <div key={entry.id} className="entry-preview">
@@ -163,7 +178,7 @@ function RecentEntries({ entries }) {
               <span className="entry-date">{formatDate(entry.created_at)}</span>
               {entry.ai_emotion && (
                 <span className="entry-emotion">
-                  {emotionEmojis[entry.ai_emotion] || '😐'}
+                  {emotionIcons[entry.ai_emotion] || <FaMeh />}
                 </span>
               )}
             </div>
@@ -199,21 +214,21 @@ function Dashboard({ dashboard, loading }) {
 
   return (
     <div className="dashboard">
-      <h2>📊 Your Progress</h2>
+      <h2><FaChartBar /> Your Progress</h2>
       
       <div className="stats-grid">
         <StatCard 
-          icon="📝" 
+          icon={<FaBook />} 
           label="Total Entries" 
           value={stats?.totalEntries || 0} 
         />
         <StatCard 
-          icon="🔥" 
+          icon={<FaFire />} 
           label="Current Streak" 
           value={`${stats?.currentStreak || 0} days`} 
         />
         <StatCard 
-          icon="✅" 
+          icon={<FaCheckCircle />} 
           label="Habits Tracked" 
           value={habitCompletions?.length || 0} 
         />

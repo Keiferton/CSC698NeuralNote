@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LoginForm.css';
+import { FaBrain, FaBook, FaRobot, FaCheckCircle, FaChartBar } from 'react-icons/fa';
 
 function LoginForm({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -29,7 +30,7 @@ function LoginForm({ onLogin }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>🧠 NeuralNote</h1>
+          <h1><FaBrain /> NeuralNote</h1>
           <p>AI-Assisted Journaling & Habit Tracking</p>
         </div>
         
@@ -56,19 +57,19 @@ function LoginForm({ onLogin }) {
         
         <div className="login-features">
           <div className="feature">
-            <span className="feature-icon">📝</span>
+            <span className="feature-icon"><FaBook /></span>
             <span>Daily Journaling</span>
           </div>
           <div className="feature">
-            <span className="feature-icon">🤖</span>
+            <span className="feature-icon"><FaRobot /></span>
             <span>AI Reflections</span>
           </div>
           <div className="feature">
-            <span className="feature-icon">✅</span>
+            <span className="feature-icon"><FaCheckCircle /></span>
             <span>Habit Tracking</span>
           </div>
           <div className="feature">
-            <span className="feature-icon">📊</span>
+            <span className="feature-icon"><FaChartBar /></span>
             <span>Progress Dashboard</span>
           </div>
         </div>
