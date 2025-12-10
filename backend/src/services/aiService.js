@@ -1,6 +1,8 @@
 /**
  * AI Service for generating journal reflections and detecting habits
- * Uses Groq API for fast text generation and local processing for emotion detection.
+ * Uses Groq API for fast text generation, emotion detection, and summarization.
+ * Emotion detection can identify any emotion word (not limited to predefined list).
+ * Falls back to local keyword-based processing when AI is unavailable.
  */
 
 const Groq = require('groq-sdk');
@@ -64,11 +66,77 @@ const affirmations = {
 };
 
 /**
- * Detect the primary emotion in a journal entry
+ * Detect the primary emotion in a journal entry using AI (Groq)
+ * @param {string} content - The journal entry content
+ * @returns {Promise<string>} - The detected emotion (can be any emotion word)
+ */
+async function detectEmotionAI(content) {
+  if (AI_PROVIDER !== 'groq' || !process.env.GROQ_API_KEY) {
+    console.log('[AI] Emotion detection: Using local fallback (Groq disabled or no API key)');
+    return detectEmotionLocal(content);
+  }
+
+  try {
+    console.log('[AI] Emotion detection: Using Groq API');
+    
+    // For very short content, use local detection
+    if (content.length < 10) {
+      console.log('[AI] Content too short for AI emotion detection, using local');
+      return detectEmotionLocal(content);
+    }
+    
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are an emotion detection assistant. Analyze journal entries and identify the primary emotion the writer is experiencing. Respond with ONLY a single emotion word (e.g., happy, sad, anxious, excited, grateful, frustrated, peaceful, energetic, exhausted, hopeful, etc.). Use the most accurate emotion word that best describes the emotional state. Do not include any explanation, punctuation, or additional text - just the emotion word."
+        },
+        {
+          role: "user",
+          content: `Analyze this journal entry and identify the primary emotion. Respond with ONLY a single emotion word that best describes how the writer is feeling.\n\nJournal entry: "${content}"\n\nEmotion:`
+        }
+      ],
+      model: "llama-3.1-8b-instant",
+      temperature: 0.3,
+      max_tokens: 15,
+      top_p: 0.9
+    });
+
+    let emotion = completion.choices[0]?.message?.content || '';
+    
+    // Clean up the response
+    emotion = emotion.trim().toLowerCase();
+    
+    // Remove any extra text, quotes, or punctuation
+    emotion = emotion.replace(/^["']|["']$/g, '').trim();
+    // Extract just the first word (in case AI adds extra words)
+    emotion = emotion.split(/[\s,.\n;:!?]/)[0].toLowerCase();
+    
+    // Remove any trailing punctuation
+    emotion = emotion.replace(/[.,;:!?]+$/, '');
+    
+    console.log('[AI] Groq emotion response:', emotion);
+    
+    // Validate that we got a reasonable emotion word (at least 2 characters, no special chars)
+    if (emotion && emotion.length >= 2 && /^[a-z]+$/.test(emotion)) {
+      console.log(`[AI] Detected emotion: ${emotion}`);
+      return emotion;
+    } else {
+      console.log(`[AI] Invalid emotion response "${emotion}", falling back to local detection`);
+      return detectEmotionLocal(content);
+    }
+  } catch (error) {
+    console.error('[AI] Groq API error for emotion detection:', error.message);
+    return detectEmotionLocal(content);
+  }
+}
+
+/**
+ * Detect the primary emotion in a journal entry using keyword matching (local fallback)
  * @param {string} content - The journal entry content
  * @returns {string} - The detected emotion
  */
-function detectEmotion(content) {
+function detectEmotionLocal(content) {
   const lowerContent = content.toLowerCase();
   const emotionScores = {};
   
@@ -93,6 +161,15 @@ function detectEmotion(content) {
   }
   
   return detectedEmotion;
+}
+
+/**
+ * Detect the primary emotion in a journal entry (uses AI if available, falls back to local)
+ * @param {string} content - The journal entry content
+ * @returns {Promise<string>} - The detected emotion
+ */
+async function detectEmotion(content) {
+  return await detectEmotionAI(content);
 }
 
 /**
@@ -175,14 +252,14 @@ async function generateSummary(content) {
  * @param {string} content - The journal entry content
  * @returns {string} - A brief summary
  */
-function generateSummaryLocal(content) {
+async function generateSummaryLocal(content) {
   console.log('[AI] Using local summary generation');
 
   const lowerContent = content.toLowerCase();
 
   // Extract emotion and theme
-  const emotion = detectEmotion(content);
-  const theme = detectMainTheme(content);
+  const emotion = await detectEmotion(content);
+  const theme = await detectMainTheme(content);
 
   // Extract activities and events
   const activities = extractActivities(content);
@@ -279,9 +356,9 @@ function extractActivities(content) {
 /**
  * Detect the main theme of the journal entry
  * @param {string} content - The journal entry content
- * @returns {string} - A brief theme description
+ * @returns {Promise<string>} - A brief theme description
  */
-function detectMainTheme(content) {
+async function detectMainTheme(content) {
   const lowerContent = content.toLowerCase();
 
   // Common themes
@@ -302,7 +379,7 @@ function detectMainTheme(content) {
   }
 
   // Fallback to detected emotion
-  const emotion = detectEmotion(content);
+  const emotion = await detectEmotion(content);
   return `${emotion} moments`;
 }
 
@@ -372,7 +449,7 @@ function detectCompletedHabits(content, userHabits) {
  * @returns {Promise<Object>} - Object containing summary, emotion, affirmation, and detectedHabits
  */
 async function generateReflection(content, userHabits = []) {
-  const emotion = detectEmotion(content);
+  const emotion = await detectEmotion(content);
   const summary = await generateSummary(content);
   const affirmation = await generateAffirmation(emotion);
   const detectedHabits = detectCompletedHabits(content, userHabits);
@@ -387,7 +464,7 @@ async function generateReflection(content, userHabits = []) {
 
 /**
  * Generate an affirmation using Groq or fallback to local
- * @param {string} emotion - The detected emotion
+ * @param {string} emotion - The detected emotion (can be any emotion word)
  * @returns {Promise<string>} - An affirmation
  */
 async function generateAffirmation(emotion) {
@@ -396,6 +473,7 @@ async function generateAffirmation(emotion) {
   }
 
   try {
+    // Map known emotions to descriptions, or use the emotion word directly for unknown emotions
     const emotionDescription = {
       happy: 'joyful and positive',
       sad: 'sad and melancholic',
@@ -405,17 +483,17 @@ async function generateAffirmation(emotion) {
       motivated: 'motivated and inspired',
       tired: 'tired and exhausted',
       neutral: 'neutral'
-    }[emotion] || 'neutral';
+    }[emotion] || emotion; // Use the emotion word directly if it's not in our mapping
 
     const completion = await groq.chat.completions.create({
       messages: [
         {
           role: "system",
-          content: "You are a supportive journal companion. Generate short, encouraging affirmations."
+          content: "You are a supportive journal companion. Generate short, encouraging affirmations that are appropriate for the emotional state described."
         },
         {
           role: "user",
-          content: `Write a short, encouraging affirmation (1 sentence, max 20 words) for someone feeling ${emotionDescription}. Only provide the affirmation, nothing else.`
+          content: `Write a short, encouraging affirmation (1 sentence, max 20 words) for someone feeling ${emotionDescription}. Make it supportive and appropriate for this emotional state. Only provide the affirmation, nothing else.`
         }
       ],
       model: "llama-3.1-8b-instant",
@@ -444,6 +522,7 @@ async function generateAffirmation(emotion) {
 module.exports = {
   generateReflection,
   detectEmotion,
+  detectEmotionLocal,
   generateSummary,
   generateAffirmation,
   getAffirmationLocal,

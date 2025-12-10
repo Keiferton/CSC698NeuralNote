@@ -2,33 +2,33 @@ const { detectEmotion, generateSummary, generateAffirmation, getAffirmationLocal
 
 describe('AI Service', () => {
   describe('detectEmotion', () => {
-    it('should detect happy emotion', () => {
+    it('should detect happy emotion', async () => {
       const content = 'Today was a wonderful day! I feel so grateful and happy.';
-      const emotion = detectEmotion(content);
+      const emotion = await detectEmotion(content);
       expect(emotion).toBe('happy');
     });
 
-    it('should detect sad emotion', () => {
+    it('should detect sad emotion', async () => {
       const content = 'I feel so sad and disappointed today. Everything went wrong.';
-      const emotion = detectEmotion(content);
+      const emotion = await detectEmotion(content);
       expect(emotion).toBe('sad');
     });
 
-    it('should detect anxious emotion', () => {
+    it('should detect anxious emotion', async () => {
       const content = 'I am feeling very anxious and worried about tomorrow.';
-      const emotion = detectEmotion(content);
+      const emotion = await detectEmotion(content);
       expect(emotion).toBe('anxious');
     });
 
-    it('should detect calm emotion', () => {
+    it('should detect calm emotion', async () => {
       const content = 'I feel so calm and peaceful after meditation.';
-      const emotion = detectEmotion(content);
+      const emotion = await detectEmotion(content);
       expect(emotion).toBe('calm');
     });
 
-    it('should return neutral for unrecognized content', () => {
+    it('should return neutral for unrecognized content', async () => {
       const content = 'I went to the store and bought some groceries.';
-      const emotion = detectEmotion(content);
+      const emotion = await detectEmotion(content);
       expect(emotion).toBe('neutral');
     });
   });
