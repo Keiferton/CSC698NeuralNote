@@ -31,10 +31,18 @@ function MainApp({ user, onLogout }) {
       await addEntry(content);
       // Refresh dashboard after adding entry
       fetchDashboard();
+    } catch (error) {
+      // If user session expired, log out
+      if (error.message && error.message.includes('User session expired')) {
+        alert('Your session has expired. Please log in again.');
+        onLogout();
+      } else {
+        alert(`Error adding entry: ${error.message || 'Unknown error'}`);
+      }
     } finally {
       setEntryLoading(false);
     }
-  }, [addEntry, fetchDashboard]);
+  }, [addEntry, fetchDashboard, onLogout]);
 
   const handleDeleteEntry = useCallback(async (entryId) => {
     if (window.confirm('Delete this journal entry? This action cannot be undone.')) {
@@ -156,7 +164,7 @@ function App() {
     );
   }
 
-  if (!user) {
+  if (!user || !user.id) {
     return (
       <ErrorBoundary>
         <LoginForm onLogin={login} />
