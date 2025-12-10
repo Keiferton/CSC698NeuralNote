@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import './Settings.css';
-import { FaCog, FaSun, FaMoon, FaSync } from 'react-icons/fa';
+import { FaCog, FaSun, FaMoon } from 'react-icons/fa';
 
 function Settings() {
-  const { theme, toggleTheme, setThemeTo } = useTheme();
+  const { theme, setThemeTo } = useTheme();
 
   return (
     <div className="settings-container">
@@ -31,15 +31,6 @@ function Settings() {
           >
             <span className="theme-icon"><FaMoon /></span>
             <span>Dark</span>
-          </button>
-          
-          <button
-            className="theme-button toggle-button"
-            onClick={toggleTheme}
-            title="Toggle theme"
-          >
-            <span className="theme-icon"><FaSync /></span>
-            <span>Toggle</span>
           </button>
         </div>
         

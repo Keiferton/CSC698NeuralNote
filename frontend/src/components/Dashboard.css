@@ -1,5 +1,5 @@
 .dashboard {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -9,13 +9,13 @@
 .dashboard.loading,
 .dashboard.empty {
   text-align: center;
-  color: #888;
+  color: var(--text-muted);
   padding: 40px;
 }
 
 .dashboard h2 {
   margin-bottom: 24px;
-  color: #333;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -33,7 +33,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+  background: var(--bg-quaternary);
   border-radius: 10px;
 }
 
@@ -49,12 +49,12 @@
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .dashboard-grid {
@@ -67,7 +67,7 @@
 .weekly-activity,
 .habit-progress,
 .recent-entries {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
   border-radius: 10px;
   padding: 20px;
 }
@@ -78,7 +78,7 @@
 .recent-entries h3 {
   margin: 0 0 16px 0;
   font-size: 1rem;
-  color: #555;
+  color: var(--text-medium);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -87,7 +87,7 @@
 .emotion-chart.empty,
 .habit-progress.empty {
   text-align: center;
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -118,7 +118,7 @@
 
 .emotion-label .name {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--text-medium);
   text-transform: capitalize;
 }
 
@@ -138,7 +138,7 @@
 
 .bar-wrapper .count {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -169,7 +169,7 @@
 
 .activity-bar {
   width: 80%;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   border-radius: 4px 4px 0 0;
   display: flex;
   justify-content: center;
@@ -186,7 +186,7 @@
 
 .day-name {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 4px;
 }
 
@@ -202,18 +202,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 6px;
 }
 
 .habit-name {
   font-size: 0.9rem;
-  color: #444;
+  color: var(--text-primary);
 }
 
 .habit-count {
   font-size: 0.85rem;
-  color: #667eea;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -226,9 +226,9 @@
 
 .entry-preview {
   padding: 12px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 6px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary-color);
 }
 
 .entry-header {
@@ -240,7 +240,7 @@
 
 .entry-date {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .entry-emotion {
@@ -250,6 +250,6 @@
 .entry-snippet {
   margin: 0;
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-medium);
   line-height: 1.4;
 }

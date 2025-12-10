@@ -1,5 +1,5 @@
 .journal-section {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -8,7 +8,7 @@
 
 .journal-section h2 {
   margin-bottom: 20px;
-  color: #333;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -21,7 +21,7 @@
 .journal-form textarea {
   width: 100%;
   padding: 16px;
-  border: 2px solid #e1e1e1;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 1rem;
   font-family: inherit;
@@ -29,17 +29,19 @@
   min-height: 120px;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .journal-form textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary-color);
 }
 
 .journal-form button {
   margin-top: 12px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -60,25 +62,25 @@
 }
 
 .entries-list h3 {
-  color: #555;
+  color: var(--text-medium);
   margin-bottom: 16px;
   font-size: 1.1rem;
 }
 
 .no-entries {
   text-align: center;
-  color: #888;
+  color: var(--text-muted);
   padding: 40px;
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
   border-radius: 8px;
 }
 
 .journal-card {
-  background: #f8f9fa;
+  background: var(--bg-tertiary);
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 16px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--primary-color);
 }
 
 .card-header {
@@ -89,7 +91,7 @@
 }
 
 .card-header .date {
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 
@@ -98,16 +100,18 @@
   border: none;
   cursor: pointer;
   font-size: 1rem;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
 }
 
 .delete-btn:hover {
   opacity: 1;
+  color: var(--text-primary);
 }
 
 .content p {
-  color: #444;
+  color: var(--text-primary);
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;
@@ -116,7 +120,7 @@
 .show-more {
   background: none;
   border: none;
-  color: #667eea;
+  color: var(--primary-color);
   cursor: pointer;
   font-size: 0.9rem;
   padding: 4px 0;
@@ -130,13 +134,13 @@
 .ai-reflection {
   margin-top: 16px;
   padding: 16px;
-  background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+  background: var(--bg-quaternary);
   border-radius: 8px;
 }
 
 .ai-reflection h4 {
   margin: 0 0 12px 0;
-  color: #555;
+  color: var(--text-medium);
   font-size: 0.95rem;
   display: flex;
   align-items: center;
@@ -154,35 +158,35 @@
 .reflection-item .label {
   display: block;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   margin-bottom: 4px;
 }
 
 .reflection-item .value {
-  color: #444;
+  color: var(--text-primary);
 }
 
 .reflection-item.emotion .value {
   font-weight: 600;
   text-transform: capitalize;
-  color: #667eea;
+  color: var(--primary-color);
 }
 
 .reflection-item.affirmation .value {
   font-style: italic;
-  color: #764ba2;
+  color: var(--secondary-color);
 }
 
 .habit-checklist {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #e1e1e1;
+  border-top: 1px solid var(--border-color);
 }
 
 .habit-checklist h4 {
   margin: 0 0 12px 0;
-  color: #555;
+  color: var(--text-medium);
   font-size: 0.95rem;
   display: flex;
   align-items: center;
@@ -200,15 +204,16 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s;
+  color: var(--text-primary);
 }
 
 .habit-checkbox:hover {
-  background: #e8e8e8;
+  background: var(--bg-hover);
 }
 
 .habit-checkbox input[type="checkbox"] {
