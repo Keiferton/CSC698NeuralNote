@@ -1,5 +1,4 @@
 const { detectEmotion, generateSummary, generateAffirmation, getAffirmationLocal, detectCompletedHabits, generateReflection } = require('../services/aiService');
-const { HfInference } = require('@huggingface/inference');
 
 describe('AI Service', () => {
   describe('detectEmotion', () => {

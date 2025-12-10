@@ -1,12 +1,12 @@
 /**
  * AI Service for generating journal reflections and detecting habits
- * Uses Hugging Face Inference API for text generation and local processing for emotion detection.
+ * Uses Groq API for fast text generation and local processing for emotion detection.
  */
 
-const { HfInference } = require('@huggingface/inference');
+const Groq = require('groq-sdk');
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
-const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE === 'true';
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const AI_PROVIDER = process.env.AI_PROVIDER || 'local';
 
 // Common emotion keywords for detection
 const emotionKeywords = {
@@ -101,14 +101,14 @@ function detectEmotion(content) {
  * @returns {Promise<string>} - A brief summary
  */
 async function generateSummary(content) {
-  // If Hugging Face is not enabled or no API key, fallback to local generation
-  if (!USE_HUGGINGFACE || !process.env.HUGGINGFACE_API_KEY) {
-    console.log('[AI] Summarization: Using local fallback (HF disabled or no API key)');
+  // If Groq is not enabled or no API key, fallback to local generation
+  if (AI_PROVIDER !== 'groq' || !process.env.GROQ_API_KEY) {
+    console.log('[AI] Summarization: Using local fallback (Groq disabled or no API key)');
     return generateSummaryLocal(content);
   }
 
   try {
-    console.log('[AI] Summarization: Starting with text generation model');
+    console.log('[AI] Summarization: Using Groq API');
     console.log(`[AI] Content length: ${content.length} characters`);
 
     // For very short content, use local generation
@@ -117,33 +117,39 @@ async function generateSummary(content) {
       return generateSummaryLocal(content);
     }
 
-    // Use text generation with a prompt to create objective summaries
-    const prompt = `Read this journal entry and create a brief, objective summary that lists the key activities, events, and emotional state. Focus on what happened, not repeating the original text.
-
-Journal entry: "${content}"
-
-Objective summary (1-2 sentences):`;
-
-    const response = await hf.textGeneration({
-      model: 'mistralai/Mistral-7B-Instruct-v0.1',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 80,
-        temperature: 0.3,
-        do_sample: true,
-        top_p: 0.9,
-        return_full_text: false
-      }
+    // Use Groq with Llama 3.1 for fast, high-quality summaries
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a journal analysis assistant. Create accurate, objective summaries of journal entries that capture all key activities, events, and emotional states. Write a concise paragraph that doesn't miss important details."
+        },
+        {
+          role: "user",
+          content: `Read this journal entry and create an accurate, objective summary that captures all the key activities, events, and emotional state. Focus on what happened and how the person felt.\n\nJournal entry: "${content}"\n\nObjective summary (short paragraph):`
+        }
+      ],
+      model: "llama-3.1-8b-instant",
+      temperature: 0.3,
+      max_tokens: 150,
+      top_p: 0.9
     });
 
-    console.log('[AI] Summarization response:', JSON.stringify(response, null, 2));
+    let summary = completion.choices[0]?.message?.content || '';
 
-    let summary = response.generated_text || '';
+    console.log('[AI] Groq response:', summary);
 
-    // Clean up the summary
-    summary = summary.split('\n')[0].trim(); // Take only first line
-    summary = summary.replace(/^(Summary:|Objective summary:|Here's a summary:)/i, '').trim();
-    summary = summary.replace(/^["']|["']$/g, '').trim(); // Remove quotes
+    // Clean up the summary - minimal processing to preserve accuracy
+    summary = summary.trim();
+
+    // Remove common prefixes
+    summary = summary.replace(/^(Summary:|Objective summary:|Here's a summary:|Key activities:|Activities:)\s*/i, '').trim();
+
+    // Remove surrounding quotes if present
+    summary = summary.replace(/^["']|["']$/g, '').trim();
+
+    // Clean up any extra newlines (convert to spaces)
+    summary = summary.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
 
     console.log(`[AI] Generated summary: "${summary}"`);
 
@@ -158,12 +164,8 @@ Objective summary (1-2 sentences):`;
 
     return summary;
   } catch (error) {
-    console.error('[AI] Hugging Face API error for summary:', error);
+    console.error('[AI] Groq API error for summary:', error);
     console.error('[AI] Error details:', error.message);
-    if (error.response) {
-      console.error('[AI] Response status:', error.response.status);
-      console.error('[AI] Response data:', error.response.data);
-    }
     return generateSummaryLocal(content);
   }
 }
@@ -384,12 +386,12 @@ async function generateReflection(content, userHabits = []) {
 }
 
 /**
- * Generate an affirmation using Hugging Face or fallback to local
+ * Generate an affirmation using Groq or fallback to local
  * @param {string} emotion - The detected emotion
  * @returns {Promise<string>} - An affirmation
  */
 async function generateAffirmation(emotion) {
-  if (!USE_HUGGINGFACE || !process.env.HUGGINGFACE_API_KEY) {
+  if (AI_PROVIDER !== 'groq' || !process.env.GROQ_API_KEY) {
     return getAffirmationLocal(emotion);
   }
 
@@ -405,34 +407,36 @@ async function generateAffirmation(emotion) {
       neutral: 'neutral'
     }[emotion] || 'neutral';
 
-    const prompt = `Write a short, encouraging affirmation (1 sentence, max 20 words) for someone feeling ${emotionDescription}. Only provide the affirmation, nothing else:\n\nAffirmation:`;
-    
-    const response = await hf.textGeneration({
-      model: 'mistralai/Mistral-7B-Instruct-v0.1',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 50,
-        temperature: 0.7,
-        do_sample: false
-      }
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a supportive journal companion. Generate short, encouraging affirmations."
+        },
+        {
+          role: "user",
+          content: `Write a short, encouraging affirmation (1 sentence, max 20 words) for someone feeling ${emotionDescription}. Only provide the affirmation, nothing else.`
+        }
+      ],
+      model: "llama-3.1-8b-instant",
+      temperature: 0.7,
+      max_tokens: 50
     });
 
-    // Extract only the generated text (not the prompt)
-    const fullText = response.generated_text;
-    const affirmationStart = fullText.indexOf('Affirmation:') + 'Affirmation:'.length;
-    let affirmation = fullText.substring(affirmationStart).trim();
-    
+    let affirmation = completion.choices[0]?.message?.content || '';
+
     // Clean up any extra content
     affirmation = affirmation.split('\n')[0].trim();
-    
+    affirmation = affirmation.replace(/^["']|["']$/g, '').trim();
+
     // If empty or too short, fall back to local
     if (!affirmation || affirmation.length < 5) {
       return getAffirmationLocal(emotion);
     }
-    
+
     return affirmation;
   } catch (error) {
-    console.error('Hugging Face API error for affirmation:', error.message);
+    console.error('Groq API error for affirmation:', error.message);
     return getAffirmationLocal(emotion);
   }
 }

@@ -399,44 +399,44 @@ describe('Debug Stats API', () => {
       expect(typeof res.body.uptime).toBe('number');
     });
 
-    it('should properly mask API key when set', withEnvVars(
-      { HUGGINGFACE_API_KEY: 'hf_testkey1234567890abcdef' },
+    it('should properly mask Groq API key when set', withEnvVars(
+      { AI_PROVIDER: 'groq', GROQ_API_KEY: 'gsk_testkey1234567890abcdef' },
       async () => {
         const res = await request(app).get('/api/debug/stats');
-        
+
         expect(res.status).toBe(200);
         expect(res.body.ai.hasApiKey).toBe(true);
-        expect(res.body.ai.apiKeyPreview).toBe('hf_testkey...');
+        expect(res.body.ai.apiKeyPreview).toBe('gsk_testke...');
         expect(res.body.ai.apiKeyPreview).not.toContain('1234567890abcdef');
       }
     ));
 
     it('should handle missing API key', withEnvVars(
-      { HUGGINGFACE_API_KEY: undefined },
+      { AI_PROVIDER: 'groq', GROQ_API_KEY: undefined },
       async () => {
         const res = await request(app).get('/api/debug/stats');
-        
+
         expect(res.status).toBe(200);
         expect(res.body.ai.hasApiKey).toBe(false);
         expect(res.body.ai.apiKeyPreview).toBe('Not set');
       }
     ));
 
-    it('should show Hugging Face provider when USE_HUGGINGFACE is true', withEnvVars(
-      { USE_HUGGINGFACE: 'true' },
+    it('should show Groq provider when AI_PROVIDER is groq', withEnvVars(
+      { AI_PROVIDER: 'groq', GROQ_API_KEY: 'gsk_test123' },
       async () => {
         const res = await request(app).get('/api/debug/stats');
-        
+
         expect(res.status).toBe(200);
-        expect(res.body.ai.provider).toBe('Hugging Face');
+        expect(res.body.ai.provider).toBe('Groq');
       }
     ));
 
-    it('should show Local (Mock) provider when USE_HUGGINGFACE is not true', withEnvVars(
-      { USE_HUGGINGFACE: 'false' },
+    it('should show Local (Mock) provider when AI_PROVIDER is not set', withEnvVars(
+      { AI_PROVIDER: undefined },
       async () => {
         const res = await request(app).get('/api/debug/stats');
-        
+
         expect(res.status).toBe(200);
         expect(res.body.ai.provider).toBe('Local (Mock)');
       }

@@ -30,16 +30,38 @@ app.get('/health', (req, res) => {
 
 // Debug stats endpoint
 app.get('/api/debug/stats', (req, res) => {
+  const aiProvider = process.env.AI_PROVIDER || 'local';
+
+  // Determine provider name and details
+  let providerName = 'Local (Mock)';
+  let hasApiKey = false;
+  let apiKeyPreview = 'Not set';
+  let models = { summarization: 'Local fallback', affirmation: 'Local fallback' };
+
+  if (aiProvider === 'groq' && process.env.GROQ_API_KEY) {
+    providerName = 'Groq';
+    hasApiKey = true;
+    apiKeyPreview = process.env.GROQ_API_KEY.substring(0, 10) + '...';
+    models = {
+      summarization: 'llama-3.1-8b-instant',
+      affirmation: 'llama-3.1-8b-instant'
+    };
+  } else if (process.env.USE_HUGGINGFACE === 'true' && process.env.HUGGINGFACE_API_KEY) {
+    providerName = 'Hugging Face (deprecated)';
+    hasApiKey = true;
+    apiKeyPreview = process.env.HUGGINGFACE_API_KEY.substring(0, 10) + '...';
+    models = {
+      summarization: 'mistralai/Mistral-7B-Instruct-v0.1',
+      affirmation: 'mistralai/Mistral-7B-Instruct-v0.1'
+    };
+  }
+
   res.json({
     ai: {
-      provider: process.env.USE_HUGGINGFACE === 'true' ? 'Hugging Face' : 'Local (Mock)',
-      hasApiKey: !!process.env.HUGGINGFACE_API_KEY,
-      apiKeyPreview: process.env.HUGGINGFACE_API_KEY ? 
-        process.env.HUGGINGFACE_API_KEY.substring(0, 10) + '...' : 'Not set',
-      models: {
-        summarization: 'facebook/bart-large-cnn',
-        affirmation: 'mistralai/Mistral-7B-Instruct-v0.1'
-      }
+      provider: providerName,
+      hasApiKey,
+      apiKeyPreview,
+      models
     },
     environment: {
       nodeEnv: process.env.NODE_ENV || 'development',
