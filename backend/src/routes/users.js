@@ -4,12 +4,12 @@ const User = require('../models/User');
 const { requireString } = require('./helpers');
 
 // Get or create a user
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const username = requireString(req.body.username, 'Username is required', res);
     if (!username) return;
 
-    const user = User.findOrCreate(username);
+    const user = await User.findOrCreate(username);
     res.status(201).json(user);
   } catch (error) {
     console.error('Error creating user:', error);
@@ -18,9 +18,9 @@ router.post('/', (req, res) => {
 });
 
 // Get user by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const user = User.findById(req.params.id);
+    const user = await User.findById(req.params.id);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

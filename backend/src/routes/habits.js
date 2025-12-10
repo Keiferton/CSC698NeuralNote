@@ -4,12 +4,12 @@ const Habit = require('../models/Habit');
 const { requireString, getUserOr404, getHabitOr404 } = require('./helpers');
 
 // Get all habits for a user
-router.get('/user/:userId', (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   try {
-    const user = getUserOr404(req.params.userId, res);
+    const user = await getUserOr404(req.params.userId, res);
     if (!user) return;
 
-    const habits = Habit.findByUserId(req.params.userId);
+    const habits = await Habit.findByUserId(req.params.userId);
     res.json(habits);
   } catch (error) {
     console.error('Error fetching habits:', error);
@@ -18,7 +18,7 @@ router.get('/user/:userId', (req, res) => {
 });
 
 // Create a new habit
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { userId, name, description } = req.body;
 
@@ -29,10 +29,10 @@ router.post('/', (req, res) => {
     const habitName = requireString(name, 'Habit name is required', res);
     if (!habitName) return;
 
-    const user = getUserOr404(userId, res);
+    const user = await getUserOr404(userId, res);
     if (!user) return;
 
-    const habit = Habit.create(userId, habitName, description?.trim() || null);
+    const habit = await Habit.create(userId, habitName, description?.trim() || null);
     res.status(201).json(habit);
   } catch (error) {
     console.error('Error creating habit:', error);
@@ -41,9 +41,9 @@ router.post('/', (req, res) => {
 });
 
 // Get a specific habit
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const habit = getHabitOr404(req.params.id, res);
+    const habit = await getHabitOr404(req.params.id, res);
     if (!habit) return;
 
     res.json(habit);
@@ -54,17 +54,17 @@ router.get('/:id', (req, res) => {
 });
 
 // Update a habit
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { name, description } = req.body;
 
     const habitName = requireString(name, 'Habit name is required', res);
     if (!habitName) return;
 
-    const existingHabit = getHabitOr404(req.params.id, res);
+    const existingHabit = await getHabitOr404(req.params.id, res);
     if (!existingHabit) return;
 
-    const habit = Habit.update(req.params.id, habitName, description?.trim() || null);
+    const habit = await Habit.update(req.params.id, habitName, description?.trim() || null);
     res.json(habit);
   } catch (error) {
     console.error('Error updating habit:', error);
@@ -73,12 +73,12 @@ router.put('/:id', (req, res) => {
 });
 
 // Delete a habit
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const habit = getHabitOr404(req.params.id, res);
+    const habit = await getHabitOr404(req.params.id, res);
     if (!habit) return;
 
-    Habit.delete(req.params.id);
+    await Habit.delete(req.params.id);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting habit:', error);
@@ -87,7 +87,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // Get habit completions by date range
-router.get('/user/:userId/completions', (req, res) => {
+router.get('/user/:userId/completions', async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -95,10 +95,10 @@ router.get('/user/:userId/completions', (req, res) => {
       return res.status(400).json({ error: 'Start date and end date are required' });
     }
     
-    const user = getUserOr404(req.params.userId, res);
+    const user = await getUserOr404(req.params.userId, res);
     if (!user) return;
     
-    const completions = Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
+    const completions = await Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
     res.json(completions);
   } catch (error) {
     console.error('Error fetching completions:', error);

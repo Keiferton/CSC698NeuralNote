@@ -5,9 +5,9 @@ const Habit = require('../models/Habit');
 const { getUserOr404 } = require('./helpers');
 
 // Get dashboard data for a user
-router.get('/:userId', (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
-    const user = getUserOr404(req.params.userId, res);
+    const user = await getUserOr404(req.params.userId, res);
     if (!user) return;
     
     // Get date range for the dashboard (default: last 30 days)
@@ -15,16 +15,16 @@ router.get('/:userId', (req, res) => {
     const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
     // Get recent journal entries (last 5)
-    const recentEntries = JournalEntry.findByUserId(req.params.userId, 5, 0);
+    const recentEntries = await JournalEntry.findByUserId(req.params.userId, 5, 0);
     
     // Get all entries for the date range
-    const allEntries = JournalEntry.getByDateRange(req.params.userId, startDate, endDate);
+    const allEntries = await JournalEntry.getByDateRange(req.params.userId, startDate, endDate);
     
     // Get habit completions for the date range
-    const habitCompletions = Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
+    const habitCompletions = await Habit.getCompletionsByDateRange(req.params.userId, startDate, endDate);
     
     // Get total habits count
-    const allHabits = Habit.findByUserId(req.params.userId);
+    const allHabits = await Habit.findByUserId(req.params.userId);
     const totalHabits = allHabits.length;
     
     // Calculate emotion distribution
@@ -96,6 +96,16 @@ router.get('/:userId', (req, res) => {
       });
     }
     
+    // Resolve completed habits for recent entries
+    const recentEntriesWithHabits = [];
+    for (const entry of recentEntries) {
+      const completedHabits = await JournalEntry.getCompletedHabits(entry.id);
+      recentEntriesWithHabits.push({
+        ...entry,
+        completedHabits
+      });
+    }
+
     res.json({
       user,
       stats: {
@@ -103,13 +113,10 @@ router.get('/:userId', (req, res) => {
         totalHabits,
         currentStreak,
         habitCompletionRate: habitCompletions.length > 0 
-          ? habitCompletions.reduce((sum, h) => sum + h.completion_count, 0) / habitCompletions.length 
+          ? habitCompletions.reduce((sum, h) => sum + Number(h.completion_count), 0) / habitCompletions.length 
           : 0
       },
-      recentEntries: recentEntries.map(entry => ({
-        ...entry,
-        completedHabits: JournalEntry.getCompletedHabits(entry.id)
-      })),
+      recentEntries: recentEntriesWithHabits,
       emotionDistribution,
       habitCompletions,
       weeklyActivity

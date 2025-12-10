@@ -11,12 +11,10 @@ describe('Full User Flow Integration Test', () => {
   let journalEntryId;
 
   // Clean up after all tests
-  afterAll(() => {
+  afterAll(async () => {
     const db = require('../models/database');
-    db.exec('DELETE FROM habit_completions');
-    db.exec('DELETE FROM journal_entries');
-    db.exec('DELETE FROM habits');
-    db.exec('DELETE FROM users');
+    await db.query('TRUNCATE habit_completions, journal_entries, habits, users CASCADE');
+    await db.close();
   });
 
   it('should complete full user journey: create user -> create habit -> create journal -> toggle habit -> view dashboard', async () => {
@@ -149,4 +147,3 @@ describe('Full User Flow Integration Test', () => {
     expect(user2HabitsRes.body[0].name).toBe('Reading');
   });
 });
-

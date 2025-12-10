@@ -1,6 +1,6 @@
 # Data Models
 
-SQLite tables are created on startup in `backend/src/models/database.js`.
+Tables live in Postgres (Supabase) and are managed via migrations/SQL in the service, not auto-created at runtime.
 
 ## users
 - `id` (TEXT, PK) — UUID.

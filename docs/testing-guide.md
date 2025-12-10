@@ -6,7 +6,7 @@ This guide explains how to test the different components of NeuralNote, includin
 
 - **Backend Tests**: Jest + Supertest for API integration tests
 - **Frontend Tests**: React Testing Library for component tests
-- **Test Database**: In-memory SQLite database (automatically used when `NODE_ENV=test`)
+- **Test Database**: Postgres (Supabase) — set `DATABASE_URL` to a test database before running tests
 
 ## Running Tests
 
@@ -266,4 +266,3 @@ npm test -- --coverage --watchAll=false
 ```
 
 Coverage reports will be generated in `coverage/` directories.
-

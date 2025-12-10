@@ -1,13 +1,15 @@
 const request = require('supertest');
 const app = require('../app');
 
+const db = require('../models/database');
+
 // Reset database for each test
-beforeEach(() => {
-  const db = require('../models/database');
-  db.exec('DELETE FROM habit_completions');
-  db.exec('DELETE FROM journal_entries');
-  db.exec('DELETE FROM habits');
-  db.exec('DELETE FROM users');
+beforeEach(async () => {
+  await db.query('TRUNCATE habit_completions, journal_entries, habits, users CASCADE');
+});
+
+afterAll(async () => {
+  await db.close();
 });
 
 describe('Users API', () => {

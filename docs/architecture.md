@@ -2,8 +2,8 @@
 
 ## Stack
 - Frontend: React (Create React App), local state via hooks, REST calls via `src/services/api.js`.
-- Backend: Express + better-sqlite3 (sync), simple in-process models, Jest + Supertest for API tests.
-- Storage: SQLite file at `backend/data/neuralnote.db` (auto-created); in-memory DB when `NODE_ENV=test`.
+- Backend: Express + Postgres (pg pool, async), simple model classes, Jest + Supertest for API tests.
+- Storage: Supabase Postgres (set `DATABASE_URL`); same DB used in tests unless you point to a separate instance.
 
 ## Runtime flow
 1) User creates/recalls a username (no auth) → frontend stores `neuralnote_user_id` in `localStorage`.
@@ -16,5 +16,5 @@
 - Frontend: `cd frontend && npm install && npm start` (proxy calls to backend via `REACT_APP_API_URL` or default to `http://localhost:3001/api`).
 
 ## Testing
-- Backend: `cd backend && npm test` uses Jest + Supertest against an in-memory SQLite database.
+- Backend: `cd backend && npm test` uses Jest + Supertest against the configured Postgres database (set `DATABASE_URL` to a test DB if needed).
 - Frontend: CRA `npm test` is available but currently minimal.

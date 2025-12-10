@@ -1,10 +1,10 @@
 # NeuralNote
 
-AI-assisted journaling and habit tracking. The backend is a small Express + SQLite API; the frontend is a React SPA that calls it via REST.
+AI-assisted journaling and habit tracking. The backend is a small Express + Postgres API; the frontend is a React SPA that calls it via REST.
 
 ## What’s here (MVP)
 - Express API with rule-based “AI” for summaries/emotion/affirmations and habit detection.
-- SQLite storage via `better-sqlite3`; in-memory DB for tests.
+- Postgres storage (Supabase) via `pg`.
 - React client with tabs for Journal, Habits, and Dashboard.
 - Jest + Supertest coverage for the backend routes and AI helpers.
 
@@ -46,7 +46,7 @@ CSC698NeuralNote/
 └── docs/                 # architecture.md, api.md, data-models.md
 ```
 
-## Data model (SQLite)
+## Data model (Postgres)
 - `users`: `id`, `username`, `created_at`
 - `habits`: `id`, `user_id`, `name`, `description`, `created_at`
 - `journal_entries`: `id`, `user_id`, `content`, `ai_summary`, `ai_emotion`, `ai_affirmation`, `created_at`
@@ -64,7 +64,7 @@ Base URL `http://localhost:3001/api`
 More request/response detail is in `docs/api.md`.
 
 ## Testing
-- Backend: `cd backend && npm test` (runs against an in-memory DB).
+- Backend: `cd backend && npm test` (runs against the configured Postgres database).
 - Frontend: `cd frontend && npm test` (CRA defaults; currently minimal).
 
 ## Docs

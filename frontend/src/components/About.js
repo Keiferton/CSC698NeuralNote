@@ -94,7 +94,7 @@ function About() {
             <h4>Backend</h4>
             <ul>
               <li>Node.js with Express</li>
-              <li>sql.js (SQLite)</li>
+              <li>PostgreSQL (Supabase)</li>
               <li>Rule-based AI service</li>
             </ul>
           </div>

@@ -7,20 +7,24 @@ const aiService = require('../services/aiService');
 const { requireString, getUserOr404, getHabitOr404 } = require('./helpers');
 
 // Get all journal entries for a user
-router.get('/user/:userId', (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   try {
-    const user = getUserOr404(req.params.userId, res);
+    const user = await getUserOr404(req.params.userId, res);
     if (!user) return;
 
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = parseInt(req.query.offset) || 0;
-    const entries = JournalEntry.findByUserId(req.params.userId, limit, offset);
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const offset = parseInt(req.query.offset, 10) || 0;
+    const entries = await JournalEntry.findByUserId(req.params.userId, limit, offset);
     
     // Add completed habits to each entry
-    const entriesWithHabits = entries.map(entry => ({
-      ...entry,
-      completedHabits: JournalEntry.getCompletedHabits(entry.id)
-    }));
+    const entriesWithHabits = [];
+    for (const entry of entries) {
+      const completedHabits = await JournalEntry.getCompletedHabits(entry.id);
+      entriesWithHabits.push({
+        ...entry,
+        completedHabits
+      });
+    }
     
     res.json(entriesWithHabits);
   } catch (error) {
@@ -41,17 +45,17 @@ router.post('/', async (req, res) => {
     const entryContent = requireString(content, 'Journal entry content is required', res);
     if (!entryContent) return;
 
-    const user = getUserOr404(userId, res);
+    const user = await getUserOr404(userId, res);
     if (!user) return;
 
     // Get user's habits for detection
-    const userHabits = Habit.findByUserId(userId);
+    const userHabits = await Habit.findByUserId(userId);
     
     // Generate AI reflection (now async)
     const reflection = await aiService.generateReflection(entryContent, userHabits);
     
     // Create the journal entry
-    const entry = JournalEntry.create(
+    const entry = await JournalEntry.create(
       userId,
       entryContent,
       reflection.summary,
@@ -62,9 +66,9 @@ router.post('/', async (req, res) => {
     // Record habit completions
     const completedHabits = [];
     for (const habitId of reflection.detectedHabits) {
-      const completion = HabitCompletion.create(habitId, entry.id);
+      const completion = await HabitCompletion.create(habitId, entry.id);
       if (completion) {
-        const habit = Habit.findById(habitId);
+        const habit = await Habit.findById(habitId);
         completedHabits.push(habit);
       }
     }
@@ -80,15 +84,15 @@ router.post('/', async (req, res) => {
 });
 
 // Get a specific journal entry
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const entry = JournalEntry.findById(req.params.id);
+    const entry = await JournalEntry.findById(req.params.id);
     
     if (!entry) {
       return res.status(404).json({ error: 'Journal entry not found' });
     }
     
-    const completedHabits = JournalEntry.getCompletedHabits(entry.id);
+    const completedHabits = await JournalEntry.getCompletedHabits(entry.id);
     
     res.json({
       ...entry,
@@ -108,19 +112,19 @@ router.put('/:id', async (req, res) => {
     const entryContent = requireString(content, 'Journal entry content is required', res);
     if (!entryContent) return;
 
-    const existingEntry = JournalEntry.findById(req.params.id);
+    const existingEntry = await JournalEntry.findById(req.params.id);
     if (!existingEntry) {
       return res.status(404).json({ error: 'Journal entry not found' });
     }
     
     // Get user's habits for detection
-    const userHabits = Habit.findByUserId(existingEntry.user_id);
+    const userHabits = await Habit.findByUserId(existingEntry.user_id);
     
     // Regenerate AI reflection with updated content (now async)
     const reflection = await aiService.generateReflection(entryContent, userHabits);
     
     // Update the entry
-    const entry = JournalEntry.update(
+    const entry = await JournalEntry.update(
       req.params.id,
       entryContent,
       reflection.summary,
@@ -129,17 +133,17 @@ router.put('/:id', async (req, res) => {
     );
     
     // Update habit completions - remove old completions
-    const oldCompletions = HabitCompletion.findByJournalEntry(req.params.id);
+    const oldCompletions = await HabitCompletion.findByJournalEntry(req.params.id);
     for (const completion of oldCompletions) {
-      HabitCompletion.delete(completion.id);
+      await HabitCompletion.delete(completion.id);
     }
     
     // Add new completions
     const completedHabits = [];
     for (const habitId of reflection.detectedHabits) {
-      const completion = HabitCompletion.create(habitId, entry.id);
+      const completion = await HabitCompletion.create(habitId, entry.id);
       if (completion) {
-        const habit = Habit.findById(habitId);
+        const habit = await Habit.findById(habitId);
         completedHabits.push(habit);
       }
     }
@@ -155,15 +159,15 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a journal entry
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const entry = JournalEntry.findById(req.params.id);
+    const entry = await JournalEntry.findById(req.params.id);
     
     if (!entry) {
       return res.status(404).json({ error: 'Journal entry not found' });
     }
     
-    JournalEntry.delete(req.params.id);
+    await JournalEntry.delete(req.params.id);
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting journal entry:', error);
@@ -172,29 +176,29 @@ router.delete('/:id', (req, res) => {
 });
 
 // Toggle habit completion for an entry
-router.post('/:id/habits/:habitId/toggle', (req, res) => {
+router.post('/:id/habits/:habitId/toggle', async (req, res) => {
   try {
-    const entry = JournalEntry.findById(req.params.id);
+    const entry = await JournalEntry.findById(req.params.id);
     if (!entry) {
       return res.status(404).json({ error: 'Journal entry not found' });
     }
 
-    const habit = getHabitOr404(req.params.habitId, res);
+    const habit = await getHabitOr404(req.params.habitId, res);
     if (!habit) return;
     
     // Check if completion exists
-    const existingCompletion = HabitCompletion.findByHabitAndEntry(
+    const existingCompletion = await HabitCompletion.findByHabitAndEntry(
       req.params.habitId,
       req.params.id
     );
     
     if (existingCompletion) {
       // Remove completion
-      HabitCompletion.delete(existingCompletion.id);
+      await HabitCompletion.delete(existingCompletion.id);
       res.json({ completed: false, habit });
     } else {
       // Add completion
-      HabitCompletion.create(req.params.habitId, req.params.id);
+      await HabitCompletion.create(req.params.habitId, req.params.id);
       res.json({ completed: true, habit });
     }
   } catch (error) {
