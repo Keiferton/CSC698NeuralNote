@@ -1,29 +1,75 @@
 # NeuralNote
 
-AI-assisted journaling and habit tracking. The backend is a small Express + Postgres API; the frontend is a React SPA that calls it via REST.
+AI-assisted journaling and habit tracking powered by Groq API. The backend is an Express + PostgreSQL REST API; the frontend is a React SPA with intelligent mood tracking, habit linking, and personalized affirmations.
 
-## What’s here (MVP)
-- Express API with rule-based “AI” for summaries/emotion/affirmations and habit detection.
+## Tech Stack
+
+**Backend:**
+- Node.js + Express.js (REST API)
+- PostgreSQL via Supabase (`pg` pool)
+- **Groq API** for fast AI inference (Llama 3.1 8B Instant model)
+- Jest + Supertest for comprehensive testing
+
+**Frontend:**
+- React 19 with Hooks
+- CSS (component-scoped)
+- Fetch API for HTTP
+
+## Features
+- 🧠 **Groq-powered AI** - Fast emotion detection, journal summaries, and personalized affirmations
+- 📝 **Smart Journaling** - Automatic emotion and habit detection from entries
+- ✅ **Habit Tracking** - Link habits to journal entries and track completion patterns
+- 📊 **Dashboard** - View mood trends and habit statistics
+- 🔄 **Graceful Fallback** - Local generation when API unavailable
+
+## What's here (MVP)
+- Express API with Groq AI integration for summaries/emotion/affirmations and habit detection.
 - Postgres storage (Supabase) via `pg`.
 - React client with tabs for Journal, Habits, and Dashboard.
 - Jest + Supertest coverage for the backend routes and AI helpers.
 
-## Quick start
-1) Backend  
-```
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL or Supabase account
+- Groq API key (free at https://console.groq.com/keys)
+
+### Setup
+
+1) **Backend**
+```bash
 cd backend
 npm install
-npm start   # http://localhost:3001
+
+# Create .env file with:
+# GROQ_API_KEY=gsk_YOUR_KEY
+# AI_PROVIDER=groq
+# DATABASE_URL=postgresql://...
+
+npm start   # Runs on http://localhost:3001
 ```
 
-2) Frontend (new terminal)  
-```
+2) **Frontend** (new terminal)
+```bash
 cd frontend
 npm install
-npm start   # http://localhost:3000
+npm start   # Runs on http://localhost:3000
 ```
 
-Optional env: set `REACT_APP_API_URL` to point the frontend at a non-default API base (defaults to `http://localhost:3001/api`).
+3) **Create a Journal Entry**
+- Go to http://localhost:3000
+- Create a username
+- Write a journal entry
+- Watch the AI generate emotion, summary, and affirmation in real-time!
+
+### Environment Variables
+- `GROQ_API_KEY` - Your Groq API key (required for AI features)
+- `AI_PROVIDER` - Set to `groq` for API or `local` for offline mode
+- `DATABASE_URL` - PostgreSQL connection string
+- `REACT_APP_API_URL` - Frontend API endpoint (defaults to `http://localhost:3001/api`)
+
+See `GROQ_SETUP.md` for detailed configuration.
 
 ## Proposed MVP folder layout
 ```
@@ -45,6 +91,27 @@ CSC698NeuralNote/
 │   └── package.json
 └── docs/                 # architecture.md, api.md, data-models.md
 ```
+
+## Documentation
+
+- **[GROQ_SETUP.md](./GROQ_SETUP.md)** - How to set up and configure Groq API integration
+- **[docs/architecture.md](./docs/architecture.md)** - System design and AI workflow
+- **[docs/api.md](./docs/api.md)** - Complete REST API reference
+- **[docs/data-models.md](./docs/data-models.md)** - Database schema and relationships
+
+## Testing
+
+Run all backend tests:
+```bash
+cd backend
+npm test
+```
+
+Tests include:
+- **AI Service** (34 tests) - Emotion detection, summarization, affirmations
+- **API Routes** (28 tests) - All REST endpoints and error handling
+- **Integration** - End-to-end user workflows
+- **Coverage**: 69.33% AI service, 75%+ API routes
 
 ## Data model (Postgres)
 - `users`: `id`, `username`, `created_at`

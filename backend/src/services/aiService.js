@@ -7,8 +7,16 @@
 
 const Groq = require('groq-sdk');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let groq = null;
 const AI_PROVIDER = process.env.AI_PROVIDER || 'local';
+
+// Initialize Groq only if we have an API key and are using it
+function initializeGroq() {
+  if (!groq && process.env.GROQ_API_KEY) {
+    groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return groq;
+}
 
 // Common emotion keywords for detection
 const emotionKeywords = {
@@ -85,7 +93,13 @@ async function detectEmotionAI(content) {
       return detectEmotionLocal(content);
     }
     
-    const completion = await groq.chat.completions.create({
+    const groqClient = initializeGroq();
+    if (!groqClient) {
+      console.log('[AI] Groq API unavailable, using local emotion detection');
+      return detectEmotionLocal(content);
+    }
+    
+    const completion = await groqClient.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -194,8 +208,14 @@ async function generateSummary(content) {
       return generateSummaryLocal(content);
     }
 
+    const groqClient = initializeGroq();
+    if (!groqClient) {
+      console.log('[AI] Groq API unavailable, using local summary generation');
+      return generateSummaryLocal(content);
+    }
+
     // Use Groq with Llama 3.1 for fast, high-quality summaries
-    const completion = await groq.chat.completions.create({
+    const completion = await groqClient.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -485,7 +505,13 @@ async function generateAffirmation(emotion) {
       neutral: 'neutral'
     }[emotion] || emotion; // Use the emotion word directly if it's not in our mapping
 
-    const completion = await groq.chat.completions.create({
+    const groqClient = initializeGroq();
+    if (!groqClient) {
+      console.log('[AI] Groq API unavailable, using local affirmation generation');
+      return getAffirmationLocal(emotion);
+    }
+
+    const completion = await groqClient.chat.completions.create({
       messages: [
         {
           role: "system",
