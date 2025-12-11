@@ -11,8 +11,11 @@ export function useUser() {
     if (storedUserId) {
       apiService.getUser(storedUserId)
         .then(setUser)
-        .catch(() => {
+        .catch((error) => {
+          // If user not found or invalid, clear the session
+          console.error('Failed to load user:', error);
           localStorage.removeItem('neuralnote_user_id');
+          setUser(null);
         })
         .finally(() => setLoading(false));
     } else {
@@ -86,6 +89,12 @@ export function useJournal(userId) {
     try {
       const data = await apiService.getJournalEntries(userId);
       setEntries(data);
+    } catch (error) {
+      // If user not found, clear entries
+      if (error.message && error.message.includes('User not found')) {
+        setEntries([]);
+      }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -96,9 +105,20 @@ export function useJournal(userId) {
   }, [fetchEntries]);
 
   const addEntry = async (content) => {
-    const entry = await apiService.createJournalEntry(userId, content);
-    setEntries(prev => [entry, ...prev]);
-    return entry;
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    try {
+      const entry = await apiService.createJournalEntry(userId, content);
+      setEntries(prev => [entry, ...prev]);
+      return entry;
+    } catch (error) {
+      // If user not found, re-throw with a more specific message
+      if (error.message && error.message.includes('User not found')) {
+        throw new Error('User session expired. Please log in again.');
+      }
+      throw error;
+    }
   };
 
   const updateEntry = async (entryId, content) => {
